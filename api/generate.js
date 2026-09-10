@@ -1,266 +1,94 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>00後翻譯機</title>
-    <style>
-        /* 整體背景：墨蘭迪綠到墨蘭迪藍的漸層 */
-        body { 
-            font-family: 'Helvetica Neue', Helvetica, Arial, 'PingFang TC', '微軟正黑體', sans-serif; 
-            background: linear-gradient(135deg, #8ba89f 0%, #7e99b0 100%); 
-            min-height: 100vh; 
-            margin: 0; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            padding: 20px; 
-            box-sizing: border-box; 
-        }
-        
-        /* 主體卡片美化 */
-        .container { 
-            background: rgba(255, 255, 255, 0.95); 
-            padding: 40px 35px; 
-            border-radius: 16px; 
-            box-shadow: 0 15px 35px rgba(0,0,0,0.15); 
-            width: 100%; 
-            max-width: 800px; 
-        }
-        
-        /* 標題：00後翻譯機 (墨蘭迪藍漸層、粗體) */
-        h1 { 
-            text-align: center; 
-            margin-top: 0; 
-            margin-bottom: 25px;
-            font-size: 32px;
-            font-weight: 900;
-            background: linear-gradient(135deg, #6c8aa3 0%, #4b6a85 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: 2px;
-        }
+export const maxDuration = 60;
 
-        .form-group { margin-bottom: 25px; }
-        label { display: block; margin-bottom: 10px; font-weight: bold; color: #444; font-size: 15px; }
-        
-        /* 輸入框美化 */
-        textarea { 
-            width: 100%; 
-            height: 160px; 
-            padding: 15px; 
-            border: 1.5px solid #d1d5db; 
-            border-radius: 10px; 
-            resize: vertical; 
-            box-sizing: border-box; 
-            font-size: 16px; 
-            line-height: 1.6;
-            transition: border-color 0.3s, box-shadow 0.3s;
-        }
-        textarea:focus {
-            outline: none;
-            border-color: #8ba89f;
-            box-shadow: 0 0 0 3px rgba(139, 168, 159, 0.2);
-        }
-        
-        /* 選擇檔案按鈕美化 (墨蘭迪綠) */
-        input[type="file"] { margin-bottom: 10px; font-family: inherit; }
-        input[type="file"]::file-selector-button {
-            background-color: #8ba89f;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            font-weight: bold;
-            margin-right: 15px;
-            font-size: 14px;
-        }
-        input[type="file"]::file-selector-button:hover {
-            background-color: #759289;
-        }
-        
-        /* 預覽區塊樣式 */
-        #preview-container { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 15px; }
-        .preview-box { 
-            width: 90px; 
-            height: 90px; 
-            position: relative; 
-            border-radius: 10px; 
-            overflow: hidden; 
-            box-shadow: 0 3px 8px rgba(0,0,0,0.1); 
-            border: 1px solid #e5e7eb; 
-            background: #fff;
-        }
-        .preview-box img { width: 100%; height: 100%; object-fit: cover; }
-        
-        /* 灰色叉叉，預設隱藏，hover時浮現 */
-        .delete-btn { 
-            position: absolute; 
-            top: 4px; 
-            right: 4px; 
-            background: rgba(100, 100, 100, 0.85); 
-            color: white; 
-            border: none; 
-            border-radius: 50%; 
-            width: 24px; 
-            height: 24px; 
-            font-size: 12px; 
-            cursor: pointer; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            padding: 0; 
-            opacity: 0; 
-            transition: opacity 0.2s ease, background 0.2s;
-        }
-        .preview-box:hover .delete-btn { opacity: 1; }
-        .delete-btn:hover { background: rgba(70, 70, 70, 0.95); }
-
-        /* 送出按鈕美化 (墨蘭迪藍) */
-        button#submitBtn { 
-            width: 100%; 
-            padding: 16px; 
-            background: #7e99b0; 
-            color: white; 
-            border: none; 
-            border-radius: 10px; 
-            font-size: 18px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            transition: background-color 0.3s, transform 0.1s; 
-            letter-spacing: 1px;
-        }
-        button#submitBtn:hover { background: #6c8aa3; }
-        button#submitBtn:active { transform: translateY(2px); }
-        button#submitBtn:disabled { background: #cbd5e1; cursor: not-allowed; transform: none; }
-        
-        #result-container { margin-top: 30px; }
-        .result-box { 
-            background: #f8fafc; 
-            padding: 25px; 
-            border-radius: 10px; 
-            border: 1px solid #e2e8f0; 
-            white-space: pre-wrap; 
-            line-height: 1.7; 
-            font-size: 16px; 
-            min-height: 120px; 
-            color: #334155; 
-        }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <h1>00後翻譯機</h1>
-    
-    <div class="form-group">
-        <label>1. 貼上你的語音文字稿：</label>
-        <textarea id="textInput" placeholder="請在此貼上紀錄內容..."></textarea>
-    </div>
-
-    <div class="form-group">
-        <label>2. 上傳相關照片：</label>
-        <input type="file" id="imageInput" multiple accept="image/*">
-        <!-- 縮圖預覽區 -->
-        <div id="preview-container"></div>
-    </div>
-
-    <button id="submitBtn">產出結果</button>
-
-    <div id="result-container">
-        <label>產出結果 (請直接複製貼上至繳交網站)：</label>
-        <div id="result" class="result-box">尚未產出...</div>
-    </div>
-</div>
-
-<script>
-    const imageInput = document.getElementById('imageInput');
-    const previewContainer = document.getElementById('preview-container');
-    const submitBtn = document.getElementById('submitBtn');
-    const resultBox = document.getElementById('result');
-    
-    let selectedFiles = [];
-
-    imageInput.addEventListener('change', (e) => {
-        const files = Array.from(e.target.files);
-        selectedFiles = selectedFiles.concat(files);
-        imageInput.value = '';
-        renderPreviews();
-    });
-
-    function renderPreviews() {
-        previewContainer.innerHTML = '';
-        selectedFiles.forEach((file, index) => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const box = document.createElement('div');
-                box.className = 'preview-box';
-                
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                
-                const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'delete-btn';
-                deleteBtn.innerHTML = '✖';
-                deleteBtn.onclick = () => {
-                    selectedFiles.splice(index, 1);
-                    renderPreviews();
-                };
-
-                box.appendChild(img);
-                box.appendChild(deleteBtn);
-                previewContainer.appendChild(box);
-            };
-            reader.readAsDataURL(file);
-        });
+export default async function handler(req, res) {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const getBase64 = (file) => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = error => reject(error);
-        });
-    };
+    try {
+        const { text, images } = req.body;
+        const apiKey = process.env.GEMINI_API_KEY;
 
-    submitBtn.addEventListener('click', async () => {
-        const text = document.getElementById('textInput').value;
-        if (!text && selectedFiles.length === 0) {
-            alert('請至少輸入文字或上傳一張照片！');
-            return;
+        if (!apiKey) {
+            return res.status(500).json({ error: '缺少 API Key' });
         }
 
-        submitBtn.disabled = true;
-        submitBtn.innerText = '處理中，請稍候...';
-        resultBox.innerText = 'AI 正在分析與撰寫中...';
+        // 使用最新主力模型
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
 
-        try {
-            const base64Images = await Promise.all(selectedFiles.map(file => getBase64(file)));
+        // 終極升學戰略版 System Instruction
+        const systemInstruction = `
+你現在是我的「青年儲蓄帳戶/特殊選才升學戰略教練」兼「雙週誌編輯」。
+我的升學目標是「科技 × 影像 × 文化 × 地方創生」跨領域路線。主要瞄準：台科大/北科大資工系、北科文化發展系、文化大學文化觀光事業學系（9月首要目標）。
+我的核心定位：「從電子與科技背景出發，進入影像創作與地方文化實作，進一步探索 AI、資訊科技與數位工具，思考如何將科技、影像、文化與地方發展結合。」
 
-            const response = await fetch('/api/generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text: text, images: base64Images })
-            });
+【寫作核心策略 - 必讀】
+1. 拒絕流水帳：不要按時間順序重寫。請主動找出「我做了什麼 → 遇到什麼問題 → 如何解決(導入什麼科技/AI) → 得到什麼成果 → 產生什麼文化/觀光反思 → 下一步計畫」。
+2. 一事多解（不虛構）：同一件事，請自然融合不同科系的亮點。
+   - 資工視角：使用什麼 AI/數位工具、Prompt 設計、遇到什麼技術瓶頸、如何提升效率。
+   - 文化發展視角：宜蘭/地方文化觀察、社區議題、與什麼人合作、影像如何保存地方文化。
+   - 文化觀光視角：旅行與地方觀察、文化體驗、觀光如何影響地方、影像如何協助觀光傳播。
+3. 五條成長線：請在文字中隱含科技線、影像線、文化線、觀光線與個人成長線的累積。
 
-            const data = await response.json();
+【輸出格式與嚴格規則】
+規則 1：絕對禁止使用任何 Markdown 語法（例如 *、#、-、> 等符號），請全部使用純文字與全形中文標點符號排版。
+規則 2：分類規則：在【這兩週的學習主題】中，盡量避免使用「其他類型」。只要有看展覽、出遊、參訪、走讀等行程，請一律優先歸類為「壯遊探索」。可選分類僅限：志願服務、壯遊探索、達人見習、創業見習、社區見習。
+規則 3：請完全依照以下四個指定標題區塊輸出，方便我直接複製貼上，不要加上任何多餘的開場白或結語。
 
-            if (response.ok) {
-                resultBox.innerText = data.result;
-            } else {
-                resultBox.innerText = `發生錯誤: ${data.error}`;
+【這兩週的學習主題】
+(請填入分類名稱，並用一句話簡述本週重點，展現跨域探索精神)
+
+【到哪些地點】
+(請直接用中文頓號分隔地點即可)
+
+【遇到什麼樣的人事物】
+(客觀描述專案、合作對象、實作任務。具體寫出使用的技術工具、AI 應用、實際拍攝或地方參與的狀況)
+
+【學習、觀察到了什麼】
+(這是最重要的部分。請整合上述的「資工/文化/觀光」視角，寫出我對文化觀光的洞察，以及科技資訊的解決方案。具體說明遇到什麼技術或執行瓶頸？想法有什麼改變？未來計畫學什麼新技術或深入什麼議題？)
+`;
+
+        let contents = [
+            {
+                role: "user",
+                parts: [
+                    { text: systemInstruction + "\n\n以下是我的原始口語與照片紀錄，請幫我提煉並轉化：\n" + (text || "無提供文字") }
+                ]
             }
-        } catch (error) {
-            resultBox.innerText = `連線失敗: ${error.message}`;
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.innerText = '產出結果';
-        }
-    });
-</script>
+        ];
 
-</body>
-</html>
+        // 處理圖片：強制濾除 Base64 標頭，防止 API 解析出錯
+        if (images && images.length > 0) {
+            images.forEach(imgStr => {
+                const cleanBase64 = imgStr.replace(/^data:image\/\w+;base64,/, "");
+                contents[0].parts.push({
+                    inline_data: {
+                        mime_type: "image/jpeg",
+                        data: cleanBase64
+                    }
+                });
+            });
+        }
+
+        const apiResponse = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents })
+        });
+
+        const data = await apiResponse.json();
+        
+        if (!apiResponse.ok || data.error) {
+            return res.status(500).json({ 
+                error: `Google API 錯誤: ${data.error?.message || JSON.stringify(data)}` 
+            });
+        }
+
+        const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text || "無法解析回傳內容";
+        return res.status(200).json({ result: resultText });
+
+    } catch (error) {
+        console.error('伺服器執行錯誤:', error);
+        return res.status(500).json({ error: `伺服器例外錯誤: ${error.message}` });
+    }
+}

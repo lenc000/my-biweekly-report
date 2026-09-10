@@ -3,48 +3,171 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>雙週誌 AI 處理器</title>
+    <title>00後翻譯機</title>
     <style>
-        body { font-family: sans-serif; background: linear-gradient(135deg, #2b5876 0%, #4e4376 100%); min-height: 100vh; margin: 0; display: flex; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
-        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.2); width: 100%; max-width: 800px; }
-        h1 { text-align: center; color: #333; margin-top: 0; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; color: #555; }
-        textarea { width: 100%; height: 150px; padding: 12px; border: 1px solid #ccc; border-radius: 8px; resize: vertical; box-sizing: border-box; font-size: 16px; }
-        input[type="file"] { margin-bottom: 10px; }
+        /* 整體背景：墨蘭迪綠到墨蘭迪藍的漸層 */
+        body { 
+            font-family: 'Helvetica Neue', Helvetica, Arial, 'PingFang TC', '微軟正黑體', sans-serif; 
+            background: linear-gradient(135deg, #8ba89f 0%, #7e99b0 100%); 
+            min-height: 100vh; 
+            margin: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            padding: 20px; 
+            box-sizing: border-box; 
+        }
         
-        /* 預覽區塊樣式：大約 3x3 公分 (90x90px) */
-        #preview-container { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
-        .preview-box { width: 90px; height: 90px; position: relative; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 1px solid #ddd; }
-        .preview-box img { width: 100%; height: 100%; object-fit: cover; }
-        .delete-btn { position: absolute; top: 4px; right: 4px; background: rgba(255, 0, 0, 0.8); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 14px; cursor: pointer; display: flex; justify-content: center; align-items: center; padding: 0; line-height: 1; }
-        .delete-btn:hover { background: red; }
+        /* 主體卡片美化 */
+        .container { 
+            background: rgba(255, 255, 255, 0.95); 
+            padding: 40px 35px; 
+            border-radius: 16px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15); 
+            width: 100%; 
+            max-width: 800px; 
+        }
+        
+        /* 標題：00後翻譯機 (墨蘭迪藍漸層、粗體) */
+        h1 { 
+            text-align: center; 
+            margin-top: 0; 
+            margin-bottom: 25px;
+            font-size: 32px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #6c8aa3 0%, #4b6a85 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 2px;
+        }
 
-        button#submitBtn { width: 100%; padding: 14px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; transition: background 0.3s; }
-        button#submitBtn:hover { background: #2563eb; }
-        button#submitBtn:disabled { background: #9ca3af; cursor: not-allowed; }
-        #result-container { margin-top: 25px; }
-        .result-box { background: #f9fafb; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; white-space: pre-wrap; line-height: 1.6; font-size: 16px; min-height: 100px; color: #333; }
+        .form-group { margin-bottom: 25px; }
+        label { display: block; margin-bottom: 10px; font-weight: bold; color: #444; font-size: 15px; }
+        
+        /* 輸入框美化 */
+        textarea { 
+            width: 100%; 
+            height: 160px; 
+            padding: 15px; 
+            border: 1.5px solid #d1d5db; 
+            border-radius: 10px; 
+            resize: vertical; 
+            box-sizing: border-box; 
+            font-size: 16px; 
+            line-height: 1.6;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #8ba89f;
+            box-shadow: 0 0 0 3px rgba(139, 168, 159, 0.2);
+        }
+        
+        /* 選擇檔案按鈕美化 (墨蘭迪綠) */
+        input[type="file"] { margin-bottom: 10px; font-family: inherit; }
+        input[type="file"]::file-selector-button {
+            background-color: #8ba89f;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-weight: bold;
+            margin-right: 15px;
+            font-size: 14px;
+        }
+        input[type="file"]::file-selector-button:hover {
+            background-color: #759289;
+        }
+        
+        /* 預覽區塊樣式 */
+        #preview-container { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 15px; }
+        .preview-box { 
+            width: 90px; 
+            height: 90px; 
+            position: relative; 
+            border-radius: 10px; 
+            overflow: hidden; 
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1); 
+            border: 1px solid #e5e7eb; 
+            background: #fff;
+        }
+        .preview-box img { width: 100%; height: 100%; object-fit: cover; }
+        
+        /* 灰色叉叉，預設隱藏，hover時浮現 */
+        .delete-btn { 
+            position: absolute; 
+            top: 4px; 
+            right: 4px; 
+            background: rgba(100, 100, 100, 0.85); 
+            color: white; 
+            border: none; 
+            border-radius: 50%; 
+            width: 24px; 
+            height: 24px; 
+            font-size: 12px; 
+            cursor: pointer; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            padding: 0; 
+            opacity: 0; 
+            transition: opacity 0.2s ease, background 0.2s;
+        }
+        .preview-box:hover .delete-btn { opacity: 1; }
+        .delete-btn:hover { background: rgba(70, 70, 70, 0.95); }
+
+        /* 送出按鈕美化 (墨蘭迪藍) */
+        button#submitBtn { 
+            width: 100%; 
+            padding: 16px; 
+            background: #7e99b0; 
+            color: white; 
+            border: none; 
+            border-radius: 10px; 
+            font-size: 18px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: background-color 0.3s, transform 0.1s; 
+            letter-spacing: 1px;
+        }
+        button#submitBtn:hover { background: #6c8aa3; }
+        button#submitBtn:active { transform: translateY(2px); }
+        button#submitBtn:disabled { background: #cbd5e1; cursor: not-allowed; transform: none; }
+        
+        #result-container { margin-top: 30px; }
+        .result-box { 
+            background: #f8fafc; 
+            padding: 25px; 
+            border-radius: 10px; 
+            border: 1px solid #e2e8f0; 
+            white-space: pre-wrap; 
+            line-height: 1.7; 
+            font-size: 16px; 
+            min-height: 120px; 
+            color: #334155; 
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>雙週誌 AI 處理器</h1>
+    <h1>00後翻譯機</h1>
     
     <div class="form-group">
         <label>1. 貼上你的語音文字稿：</label>
-        <textarea id="textInput" placeholder="請在此貼上這兩週的學習紀錄..."></textarea>
+        <textarea id="textInput" placeholder="請在此貼上紀錄內容..."></textarea>
     </div>
 
     <div class="form-group">
-        <label>2. 上傳相關照片 (可隨時點擊右上角 ✖ 刪除錯誤照片)：</label>
+        <label>2. 上傳相關照片：</label>
         <input type="file" id="imageInput" multiple accept="image/*">
         <!-- 縮圖預覽區 -->
         <div id="preview-container"></div>
     </div>
 
-    <button id="submitBtn">🚀 產出雙週誌</button>
+    <button id="submitBtn">產出結果</button>
 
     <div id="result-container">
         <label>產出結果 (請直接複製貼上至繳交網站)：</label>
@@ -58,20 +181,15 @@
     const submitBtn = document.getElementById('submitBtn');
     const resultBox = document.getElementById('result');
     
-    // 用陣列存放選擇的照片檔案
     let selectedFiles = [];
 
-    // 當選擇檔案時觸發
     imageInput.addEventListener('change', (e) => {
         const files = Array.from(e.target.files);
-        // 合併新選擇的檔案到陣列中
         selectedFiles = selectedFiles.concat(files);
-        // 清空 input 讓它能重複選擇相同的檔案
         imageInput.value = '';
         renderPreviews();
     });
 
-    // 渲染預覽畫面
     function renderPreviews() {
         previewContainer.innerHTML = '';
         selectedFiles.forEach((file, index) => {
@@ -87,7 +205,6 @@
                 deleteBtn.className = 'delete-btn';
                 deleteBtn.innerHTML = '✖';
                 deleteBtn.onclick = () => {
-                    // 從陣列中移除該檔案並重新渲染
                     selectedFiles.splice(index, 1);
                     renderPreviews();
                 };
@@ -100,7 +217,6 @@
         });
     }
 
-    // 處理 Base64 轉換
     const getBase64 = (file) => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -110,7 +226,6 @@
         });
     };
 
-    // 送出資料
     submitBtn.addEventListener('click', async () => {
         const text = document.getElementById('textInput').value;
         if (!text && selectedFiles.length === 0) {
@@ -119,11 +234,10 @@
         }
 
         submitBtn.disabled = true;
-        submitBtn.innerText = '處理中，請稍候... (若有圖片會比較久)';
-        resultBox.innerText = 'AI 正在努力撰寫中...';
+        submitBtn.innerText = '處理中，請稍候...';
+        resultBox.innerText = 'AI 正在分析與撰寫中...';
 
         try {
-            // 將所有選擇的檔案轉為 Base64
             const base64Images = await Promise.all(selectedFiles.map(file => getBase64(file)));
 
             const response = await fetch('/api/generate', {
@@ -143,7 +257,7 @@
             resultBox.innerText = `連線失敗: ${error.message}`;
         } finally {
             submitBtn.disabled = false;
-            submitBtn.innerText = '🚀 產出雙週誌';
+            submitBtn.innerText = '產出結果';
         }
     });
 </script>

@@ -41,7 +41,6 @@
         .form-group { margin-bottom: 25px; }
         label { display: block; margin-bottom: 10px; font-weight: bold; color: #444; font-size: 15px; }
         
-        /* 統一輸入框美化 */
         textarea, input[type="text"] { 
             width: 100%; 
             padding: 15px; 
@@ -128,13 +127,41 @@
         button#submitBtn:disabled { background: #cbd5e1; cursor: not-allowed; transform: none; }
         
         #result-container { margin-top: 30px; }
+        
+        /* 標題與一鍵複製按鈕的排列容器 */
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .result-header label {
+            margin-bottom: 0;
+        }
+        
+        /* 一鍵複製按鈕美化 */
+        #copyBtn {
+            background-color: #8ba89f;
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        #copyBtn:hover {
+            background-color: #759289;
+        }
+
         .result-box { 
             background: #f8fafc; 
             padding: 25px; 
             border-radius: 10px; 
             border: 1px solid #e2e8f0; 
             white-space: pre-wrap; 
-            line-height: 1.7; 
+            line-height: 1.8; 
             font-size: 16px; 
             min-height: 120px; 
             color: #334155; 
@@ -151,7 +178,6 @@
         <textarea id="textInput" placeholder="請在此貼上紀錄內容..."></textarea>
     </div>
 
-    <!-- 新增：風格微調區塊 -->
     <div class="form-group">
         <label>2. 自訂本次風格微調 (選填)：</label>
         <input type="text" id="styleInput" placeholder="例如：客觀敘述、強化亮點與反思、增加個人獨特視角...">
@@ -166,7 +192,10 @@
     <button id="submitBtn">產出結果</button>
 
     <div id="result-container">
-        <label>產出結果 (請直接複製貼上至繳交網站)：</label>
+        <div class="result-header">
+            <label>產出結果 (請直接複製貼上至繳交網站)：</label>
+            <button id="copyBtn">📋 一鍵複製</button>
+        </div>
         <div id="result" class="result-box">尚未產出...</div>
     </div>
 </div>
@@ -176,6 +205,7 @@
     const previewContainer = document.getElementById('preview-container');
     const submitBtn = document.getElementById('submitBtn');
     const resultBox = document.getElementById('result');
+    const copyBtn = document.getElementById('copyBtn');
     
     let selectedFiles = [];
 
@@ -222,9 +252,29 @@
         });
     };
 
+    // 一鍵複製功能
+    copyBtn.addEventListener('click', () => {
+        const textToCopy = resultBox.innerText;
+        if (!textToCopy || textToCopy === '尚未產出...' || textToCopy.includes('正在分析')) {
+            alert('目前沒有可複製的內容！');
+            return;
+        }
+
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            copyBtn.innerText = '✨ 已複製！';
+            copyBtn.style.backgroundColor = '#6c8aa3';
+            setTimeout(() => {
+                copyBtn.innerText = '📋 一鍵複製';
+                copyBtn.style.backgroundColor = '#8ba89f';
+            }, 2000);
+        }).catch(err => {
+            alert('複製失敗，請手動複製');
+        });
+    });
+
     submitBtn.addEventListener('click', async () => {
         const text = document.getElementById('textInput').value;
-        const styleAdjustment = document.getElementById('styleInput').value; // 抓取風格微調文字
+        const styleAdjustment = document.getElementById('styleInput').value;
 
         if (!text && selectedFiles.length === 0) {
             alert('請至少輸入文字或上傳一張照片！');
@@ -241,7 +291,6 @@
             const response = await fetch('/api/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                // 將 styleAdjustment 一併傳給後端
                 body: JSON.stringify({ text: text, styleAdjustment: styleAdjustment, images: base64Images })
             });
 

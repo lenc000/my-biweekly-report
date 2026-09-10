@@ -1,3 +1,5 @@
+export const maxDuration = 60;
+
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
@@ -11,7 +13,34 @@ export default async function handler(req, res) {
             return res.status(500).json({ error: '系統缺少 API Key，請檢查環境變數設定。' });
         }
 
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        // 💡 終極解法：先去向 Google 詢問「這個金鑰目前有權限使用哪些模型？」
+        const listModelsUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
+        const listResponse = await fetch(listModelsUrl);
+        const listData = await listResponse.json();
+        
+        if (listData.error) {
+            return res.status(500).json({ error: `獲取模型列表失敗: ${listData.error.message}` });
+        }
+
+        // 💡 自動過濾出可以「生成內容」的模型
+        const availableModels = listData.models || [];
+        const supportedModels = availableModels.filter(m => 
+            m.supportedGenerationMethods && m.supportedGenerationMethods.includes("generateContent")
+        );
+
+        if (supportedModels.length === 0) {
+            return res.status(500).json({ error: '您的 API Key 目前沒有支援任何模型。' });
+        }
+
+        // 💡 自動挑選邏輯：優先找 flash，沒有就找 pro，再沒有就隨便拿第一個能用的
+        let targetModelObj = supportedModels.find(m => m.name.includes("flash")) 
+                          || supportedModels.find(m => m.name.includes("pro")) 
+                          || supportedModels[0];
+                          
+        const targetModel = targetModelObj.name; // 系統會自動抓到正確名稱，例如 models/gemini-1.5-pro-002
+
+        // 💡 使用自動找到的安全模型名稱發送請求
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/${targetModel}:generateContent?key=${apiKey}`;
 
         const systemInstruction = `
 你現在是我的「特殊選才/青年儲蓄帳戶升學戰略教練」兼「雙週誌編輯」。
@@ -45,6 +74,7 @@ export default async function handler(req, res) {
             }
         ];
 
+        // 處理照片
         if (images && images.length > 0) {
             images.forEach(base64Str => {
                 contents[0].parts.push({
@@ -65,7 +95,7 @@ export default async function handler(req, res) {
         const data = await apiResponse.json();
         
         if (data.error) {
-            return res.status(500).json({ error: data.error.message });
+            return res.status(500).json({ error: `AI 處理失敗 (${targetModel}): ${data.error.message}` });
         }
 
         const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text || "無法解析回傳內容";
@@ -73,6 +103,6 @@ export default async function handler(req, res) {
 
     } catch (error) {
         console.error('伺服器執行錯誤:', error);
-        return res.status(500).json({ error: '伺服器發生異常錯誤' });
+        return res.status(500).json({ error: '伺服器發生異常錯誤: ' + error.message });
     }
 }

@@ -6,17 +6,16 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { text, images } = req.body;
+        // 接收新的 styleAdjustment 參數
+        const { text, styleAdjustment, images } = req.body;
         const apiKey = process.env.GEMINI_API_KEY;
 
         if (!apiKey) {
             return res.status(500).json({ error: '缺少 API Key' });
         }
 
-        // 使用最新主力模型
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
 
-        // 終極升學戰略版 System Instruction
         const systemInstruction = `
 你現在是我的「青年儲蓄帳戶/特殊選才升學戰略教練」兼「雙週誌編輯」。
 我的升學目標是「科技 × 影像 × 文化 × 地方創生」跨領域路線。主要瞄準：台科大/北科大資工系、北科文化發展系、文化大學文化觀光事業學系（9月首要目標）。
@@ -48,16 +47,21 @@ export default async function handler(req, res) {
 (這是最重要的部分。請整合上述的「資工/文化/觀光」視角，寫出我對文化觀光的洞察，以及科技資訊的解決方案。具體說明遇到什麼技術或執行瓶頸？想法有什麼改變？未來計畫學什麼新技術或深入什麼議題？)
 `;
 
+        // 判斷：如果使用者有填寫微調風格，就加上這段指令
+        let extraStylePrompt = "";
+        if (styleAdjustment && styleAdjustment.trim() !== "") {
+            extraStylePrompt = `\n\n【🚀 本次特別微調要求】\n請在維持上述原則的前提下，本次的內容生成請特別遵循以下使用者要求：\n「${styleAdjustment}」\n`;
+        }
+
         let contents = [
             {
                 role: "user",
                 parts: [
-                    { text: systemInstruction + "\n\n以下是我的原始口語與照片紀錄，請幫我提煉並轉化：\n" + (text || "無提供文字") }
+                    { text: systemInstruction + extraStylePrompt + "\n\n以下是我的原始口語與照片紀錄，請幫我提煉並轉化：\n" + (text || "無提供文字") }
                 ]
             }
         ];
 
-        // 處理圖片：強制濾除 Base64 標頭，防止 API 解析出錯
         if (images && images.length > 0) {
             images.forEach(imgStr => {
                 const cleanBase64 = imgStr.replace(/^data:image\/\w+;base64,/, "");

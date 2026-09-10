@@ -12,7 +12,6 @@ export default async function handler(req, res) {
 
     // 已替換為速度最快、不會超時且路徑正確的 Flash 模型
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-
     const systemInstruction = `
 你現在是我的「特殊選才/青年儲蓄帳戶升學戰略教練」兼「雙週誌編輯」。
 請過濾我的冗言贅字，並轉化為符合以下固定欄位的精煉文字。

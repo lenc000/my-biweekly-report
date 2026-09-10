@@ -1,24 +1,18 @@
-export const maxDuration = 60;
 export default async function handler(req, res) {
-    // 1. 阻擋非 POST 的惡意請求 (資安基本防護)
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    // 2. 接收前端傳來的文字與圖片
     const { text, images } = req.body;
-    
-    // 3. 從雲端環境變數讀取 API Key (金鑰不寫死在程式碼裡)
     const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
         return res.status(500).json({ error: '系統缺少 API Key，請檢查環境變數設定。' });
     }
 
-    // 我們在此呼叫目前 API 支援的最強旗艦模型 gemini-1.5-pro
-    // (網頁版標示的更新版本號在開發者 API 端點目前統一代號為 1.5-pro)
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${apiKey}`;
-    // 4. 定義你專屬的升學戰略 Prompt
+    // 已替換為速度最快、不會超時且路徑正確的 Flash 模型
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
     const systemInstruction = `
 你現在是我的「特殊選才/青年儲蓄帳戶升學戰略教練」兼「雙週誌編輯」。
 請過濾我的冗言贅字，並轉化為符合以下固定欄位的精煉文字。
@@ -43,17 +37,15 @@ export default async function handler(req, res) {
 `;
 
     try {
-        // 5. 組合發送給 Gemini 的資料 (支援多模態：文字 + 圖片)
         let contents = [
             {
                 role: "user",
                 parts: [
-                    { text: systemInstruction + "\n\n以下是我的口語紀錄：\n" + text }
+                    { text: systemInstruction + "\n\n以下是我的口語紀錄：\n" + (text || "無提供文字") }
                 ]
             }
         ];
 
-        // 如果有圖片，就把圖片資料塞進去
         if (images && images.length > 0) {
             images.forEach(base64Str => {
                 contents[0].parts.push({
@@ -65,7 +57,6 @@ export default async function handler(req, res) {
             });
         }
 
-        // 6. 向 Google 發送請求
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -78,7 +69,6 @@ export default async function handler(req, res) {
             throw new Error(data.error.message);
         }
 
-        // 7. 將 AI 產出的結果傳回給前端
         const resultText = data.candidates[0].content.parts[0].text;
         res.status(200).json({ result: resultText });
 

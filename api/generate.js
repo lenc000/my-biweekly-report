@@ -1,3 +1,4 @@
+export const maxDuration = 60;
 export default async function handler(req, res) {
     // 1. 阻擋非 POST 的惡意請求 (資安基本防護)
     if (req.method !== 'POST') {
@@ -16,8 +17,7 @@ export default async function handler(req, res) {
 
     // 我們在此呼叫目前 API 支援的最強旗艦模型 gemini-1.5-pro
     // (網頁版標示的更新版本號在開發者 API 端點目前統一代號為 1.5-pro)
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`;
-
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${apiKey}`;
     // 4. 定義你專屬的升學戰略 Prompt
     const systemInstruction = `
 你現在是我的「特殊選才/青年儲蓄帳戶升學戰略教練」兼「雙週誌編輯」。

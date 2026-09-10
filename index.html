@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>00後翻譯機</title>
     <style>
-        /* 整體背景：墨蘭迪綠到墨蘭迪藍的漸層 */
         body { 
             font-family: 'Helvetica Neue', Helvetica, Arial, 'PingFang TC', '微軟正黑體', sans-serif; 
             background: linear-gradient(135deg, #8ba89f 0%, #7e99b0 100%); 
@@ -18,7 +17,6 @@
             box-sizing: border-box; 
         }
         
-        /* 主體卡片美化 */
         .container { 
             background: rgba(255, 255, 255, 0.95); 
             padding: 40px 35px; 
@@ -28,7 +26,6 @@
             max-width: 800px; 
         }
         
-        /* 標題：00後翻譯機 (墨蘭迪藍漸層、粗體) */
         h1 { 
             text-align: center; 
             margin-top: 0; 
@@ -44,26 +41,23 @@
         .form-group { margin-bottom: 25px; }
         label { display: block; margin-bottom: 10px; font-weight: bold; color: #444; font-size: 15px; }
         
-        /* 輸入框美化 */
-        textarea { 
+        /* 統一輸入框美化 */
+        textarea, input[type="text"] { 
             width: 100%; 
-            height: 160px; 
             padding: 15px; 
             border: 1.5px solid #d1d5db; 
             border-radius: 10px; 
-            resize: vertical; 
             box-sizing: border-box; 
             font-size: 16px; 
-            line-height: 1.6;
             transition: border-color 0.3s, box-shadow 0.3s;
         }
-        textarea:focus {
+        textarea { height: 160px; resize: vertical; line-height: 1.6; }
+        textarea:focus, input[type="text"]:focus {
             outline: none;
             border-color: #8ba89f;
             box-shadow: 0 0 0 3px rgba(139, 168, 159, 0.2);
         }
         
-        /* 選擇檔案按鈕美化 (墨蘭迪綠) */
         input[type="file"] { margin-bottom: 10px; font-family: inherit; }
         input[type="file"]::file-selector-button {
             background-color: #8ba89f;
@@ -81,7 +75,6 @@
             background-color: #759289;
         }
         
-        /* 預覽區塊樣式 */
         #preview-container { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 15px; }
         .preview-box { 
             width: 90px; 
@@ -95,7 +88,6 @@
         }
         .preview-box img { width: 100%; height: 100%; object-fit: cover; }
         
-        /* 灰色叉叉，預設隱藏，hover時浮現 */
         .delete-btn { 
             position: absolute; 
             top: 4px; 
@@ -118,7 +110,6 @@
         .preview-box:hover .delete-btn { opacity: 1; }
         .delete-btn:hover { background: rgba(70, 70, 70, 0.95); }
 
-        /* 送出按鈕美化 (墨蘭迪藍) */
         button#submitBtn { 
             width: 100%; 
             padding: 16px; 
@@ -160,10 +151,15 @@
         <textarea id="textInput" placeholder="請在此貼上紀錄內容..."></textarea>
     </div>
 
+    <!-- 新增：風格微調區塊 -->
     <div class="form-group">
-        <label>2. 上傳相關照片：</label>
+        <label>2. 自訂本次風格微調 (選填)：</label>
+        <input type="text" id="styleInput" placeholder="例如：特別強調程式除錯的過程、語氣再活潑一點、專注在地方創生的反思...">
+    </div>
+
+    <div class="form-group">
+        <label>3. 上傳相關照片：</label>
         <input type="file" id="imageInput" multiple accept="image/*">
-        <!-- 縮圖預覽區 -->
         <div id="preview-container"></div>
     </div>
 
@@ -228,6 +224,8 @@
 
     submitBtn.addEventListener('click', async () => {
         const text = document.getElementById('textInput').value;
+        const styleAdjustment = document.getElementById('styleInput').value; // 抓取風格微調文字
+
         if (!text && selectedFiles.length === 0) {
             alert('請至少輸入文字或上傳一張照片！');
             return;
@@ -243,7 +241,8 @@
             const response = await fetch('/api/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text: text, images: base64Images })
+                // 將 styleAdjustment 一併傳給後端
+                body: JSON.stringify({ text: text, styleAdjustment: styleAdjustment, images: base64Images })
             });
 
             const data = await response.json();

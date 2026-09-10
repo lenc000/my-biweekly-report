@@ -3,126 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>跨域青年雙週誌 AI 處理器</title>
+    <title>雙週誌 AI 處理器</title>
     <style>
-        /* 現代漸層背景與 Google 系字體 */
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        body { font-family: sans-serif; background: linear-gradient(135deg, #2b5876 0%, #4e4376 100%); min-height: 100vh; margin: 0; display: flex; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
+        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.2); width: 100%; max-width: 800px; }
+        h1 { text-align: center; color: #333; margin-top: 0; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: #555; }
+        textarea { width: 100%; height: 150px; padding: 12px; border: 1px solid #ccc; border-radius: 8px; resize: vertical; box-sizing: border-box; font-size: 16px; }
+        input[type="file"] { margin-bottom: 10px; }
         
-        body {
-            font-family: 'Noto Sans TC', sans-serif;
-            margin: 0;
-            padding: 40px 20px;
-            background: linear-gradient(135deg, #34A853 0%, #4285F4 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-        }
+        /* 預覽區塊樣式：大約 3x3 公分 (90x90px) */
+        #preview-container { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+        .preview-box { width: 90px; height: 90px; position: relative; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 1px solid #ddd; }
+        .preview-box img { width: 100%; height: 100%; object-fit: cover; }
+        .delete-btn { position: absolute; top: 4px; right: 4px; background: rgba(255, 0, 0, 0.8); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 14px; cursor: pointer; display: flex; justify-content: center; align-items: center; padding: 0; line-height: 1; }
+        .delete-btn:hover { background: red; }
 
-        /* 玻璃擬物化卡片設計 (Glassmorphism) */
-        .container {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 40px;
-            width: 100%;
-            max-width: 800px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-
-        h1 {
-            text-align: center;
-            background: linear-gradient(90deg, #34A853, #4285F4);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 30px;
-        }
-
-        label {
-            font-weight: 500;
-            color: #333;
-            display: block;
-            margin-bottom: 10px;
-        }
-
-        textarea {
-            width: 100%;
-            height: 150px;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            font-size: 16px;
-            resize: vertical;
-            box-sizing: border-box;
-            font-family: inherit;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: #4285F4;
-        }
-
-        .upload-section {
-            margin: 20px 0;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 12px;
-            border: 2px dashed #bbdefb;
-        }
-
-        input[type="file"] {
-            display: block;
-            margin-top: 10px;
-        }
-
-        /* 漸層按鈕 */
-        button {
-            width: 100%;
-            padding: 15px;
-            margin-top: 20px;
-            background: linear-gradient(90deg, #34A853, #4285F4);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(66, 133, 244, 0.4);
-        }
-
-        button:disabled {
-            background: #cccccc;
-            cursor: not-allowed;
-        }
-
-        /* 輸出區塊 */
-        .output-section {
-            margin-top: 30px;
-            display: none;
-        }
-
-        .output-box {
-            background: white;
-            padding: 20px;
-            border-left: 5px solid #34A853;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            white-space: pre-wrap;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-
-        #loading {
-            text-align: center;
-            color: #4285F4;
-            font-weight: bold;
-            display: none;
-            margin-top: 20px;
-        }
+        button#submitBtn { width: 100%; padding: 14px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; transition: background 0.3s; }
+        button#submitBtn:hover { background: #2563eb; }
+        button#submitBtn:disabled { background: #9ca3af; cursor: not-allowed; }
+        #result-container { margin-top: 25px; }
+        .result-box { background: #f9fafb; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; white-space: pre-wrap; line-height: 1.6; font-size: 16px; min-height: 100px; color: #333; }
     </style>
 </head>
 <body>
@@ -130,78 +32,100 @@
 <div class="container">
     <h1>雙週誌 AI 處理器</h1>
     
-    <label>1. 貼上你的語音文字稿：</label>
-    <textarea id="inputText" placeholder="請把這兩週發生的事情、技術卡關、拍攝現場狀況、心得，毫無邏輯地全部貼進來..."></textarea>
-
-    <div class="upload-section">
-        <label>2. 上傳相關照片 (最多 10 張，系統會自動壓縮)：</label>
-        <input type="file" id="imageInput" accept="image/*" multiple max="10">
-        <small style="color: #666;">照片將幫助 AI 擷取技術與場景細節，豐富雙週誌內容。</small>
+    <div class="form-group">
+        <label>1. 貼上你的語音文字稿：</label>
+        <textarea id="textInput" placeholder="請在此貼上這兩週的學習紀錄..."></textarea>
     </div>
 
-    <button id="generateBtn" onclick="processData()">🚀 產出雙週誌</button>
-    <div id="loading">AI 正在融合你的跨域經歷，請稍候...</div>
+    <div class="form-group">
+        <label>2. 上傳相關照片 (可隨時點擊右上角 ✖ 刪除錯誤照片)：</label>
+        <input type="file" id="imageInput" multiple accept="image/*">
+        <!-- 縮圖預覽區 -->
+        <div id="preview-container"></div>
+    </div>
 
-    <div class="output-section" id="outputSection">
+    <button id="submitBtn">🚀 產出雙週誌</button>
+
+    <div id="result-container">
         <label>產出結果 (請直接複製貼上至繳交網站)：</label>
-        <div class="output-box" id="resultText"></div>
+        <div id="result" class="result-box">尚未產出...</div>
     </div>
 </div>
 
 <script>
-    // 檢查圖片數量
-    document.getElementById('imageInput').addEventListener('change', function(e) {
-        if(this.files.length > 10) {
-            alert('最多只能上傳 10 張照片喔！');
-            this.value = '';
-        }
+    const imageInput = document.getElementById('imageInput');
+    const previewContainer = document.getElementById('preview-container');
+    const submitBtn = document.getElementById('submitBtn');
+    const resultBox = document.getElementById('result');
+    
+    // 用陣列存放選擇的照片檔案
+    let selectedFiles = [];
+
+    // 當選擇檔案時觸發
+    imageInput.addEventListener('change', (e) => {
+        const files = Array.from(e.target.files);
+        // 合併新選擇的檔案到陣列中
+        selectedFiles = selectedFiles.concat(files);
+        // 清空 input 讓它能重複選擇相同的檔案
+        imageInput.value = '';
+        renderPreviews();
     });
 
-    // 圖片壓縮與轉 Base64 功能 (資工亮點：前端效能優化)
-    function fileToBase64(file) {
-        return new Promise((resolve, reject) => {
+    // 渲染預覽畫面
+    function renderPreviews() {
+        previewContainer.innerHTML = '';
+        selectedFiles.forEach((file, index) => {
             const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = (event) => {
-                const img = new Image();
-                img.src = event.target.result;
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    // 壓縮圖片大小至寬度 max 800px 以避免 API 超載
-                    const scale = Math.min(800 / img.width, 1);
-                    canvas.width = img.width * scale;
-                    canvas.height = img.height * scale;
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    resolve(canvas.toDataURL('image/jpeg', 0.8).split(',')[1]);
+            reader.onload = (e) => {
+                const box = document.createElement('div');
+                box.className = 'preview-box';
+                
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.innerHTML = '✖';
+                deleteBtn.onclick = () => {
+                    // 從陣列中移除該檔案並重新渲染
+                    selectedFiles.splice(index, 1);
+                    renderPreviews();
                 };
+
+                box.appendChild(img);
+                box.appendChild(deleteBtn);
+                previewContainer.appendChild(box);
             };
-            reader.onerror = error => reject(error);
+            reader.readAsDataURL(file);
         });
     }
 
-    async function processData() {
-        const text = document.getElementById('inputText').value;
-        const fileInput = document.getElementById('imageInput');
-        
-        if (!text && fileInput.files.length === 0) {
-            alert('請至少輸入文字或上傳照片！');
+    // 處理 Base64 轉換
+    const getBase64 = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+    };
+
+    // 送出資料
+    submitBtn.addEventListener('click', async () => {
+        const text = document.getElementById('textInput').value;
+        if (!text && selectedFiles.length === 0) {
+            alert('請至少輸入文字或上傳一張照片！');
             return;
         }
 
-        document.getElementById('generateBtn').disabled = true;
-        document.getElementById('loading').style.display = 'block';
-        document.getElementById('outputSection').style.display = 'none';
+        submitBtn.disabled = true;
+        submitBtn.innerText = '處理中，請稍候... (若有圖片會比較久)';
+        resultBox.innerText = 'AI 正在努力撰寫中...';
 
         try {
-            // 處理圖片轉碼
-            const base64Images = [];
-            for (let i = 0; i < fileInput.files.length; i++) {
-                const base64 = await fileToBase64(fileInput.files[i]);
-                base64Images.push(base64);
-            }
+            // 將所有選擇的檔案轉為 Base64
+            const base64Images = await Promise.all(selectedFiles.map(file => getBase64(file)));
 
-            // 這裡準備發送給我們下一步要寫的後端 API
             const response = await fetch('/api/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -209,18 +133,19 @@
             });
 
             const data = await response.json();
-            
-            document.getElementById('resultText').innerText = data.result;
-            document.getElementById('outputSection').style.display = 'block';
 
+            if (response.ok) {
+                resultBox.innerText = data.result;
+            } else {
+                resultBox.innerText = `發生錯誤: ${data.error}`;
+            }
         } catch (error) {
-            alert('發生錯誤，請檢查網路或 API 設定！');
-            console.error(error);
+            resultBox.innerText = `連線失敗: ${error.message}`;
         } finally {
-            document.getElementById('generateBtn').disabled = false;
-            document.getElementById('loading').style.display = 'none';
+            submitBtn.disabled = false;
+            submitBtn.innerText = '🚀 產出雙週誌';
         }
-    }
+    });
 </script>
 
 </body>

@@ -41,7 +41,6 @@
         .form-group { margin-bottom: 25px; }
         label { display: block; margin-bottom: 10px; font-weight: bold; color: #444; font-size: 15px; }
         
-        /* 統一輸入框美化 */
         textarea, input[type="text"] { 
             width: 100%; 
             padding: 15px; 
@@ -127,17 +126,52 @@
         button#submitBtn:active { transform: translateY(2px); }
         button#submitBtn:disabled { background: #cbd5e1; cursor: not-allowed; transform: none; }
         
+        /* 產出結果區塊與按鈕排版 */
         #result-container { margin-top: 30px; }
+        .result-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .result-header-row label { margin-bottom: 0; }
+        
+        button#copyBtn {
+            background: #8ba89f;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: none; /* 預設隱藏，有結果才顯示 */
+        }
+        button#copyBtn:hover { background: #759289; }
+
         .result-box { 
             background: #f8fafc; 
             padding: 25px; 
             border-radius: 10px; 
             border: 1px solid #e2e8f0; 
-            white-space: pre-wrap; 
             line-height: 1.7; 
             font-size: 16px; 
             min-height: 120px; 
             color: #334155; 
+        }
+
+        /* AI 產出標題的重點樣式 */
+        .highlight-title {
+            font-weight: 900;
+            color: #4b6a85;
+            background: rgba(126, 153, 176, 0.15);
+            padding: 4px 8px;
+            border-radius: 6px;
+            display: inline-block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
         }
     </style>
 </head>
@@ -151,7 +185,6 @@
         <textarea id="textInput" placeholder="請在此貼上紀錄內容..."></textarea>
     </div>
 
-    <!-- 新增：風格微調區塊 -->
     <div class="form-group">
         <label>2. 自訂本次風格微調 (選填)：</label>
         <input type="text" id="styleInput" placeholder="例如：客觀敘述、強化亮點與反思、增加個人獨特視角...">
@@ -166,7 +199,10 @@
     <button id="submitBtn">產出結果</button>
 
     <div id="result-container">
-        <label>產出結果 (請直接複製貼上至繳交網站)：</label>
+        <div class="result-header-row">
+            <label>產出結果 (請直接複製貼上至繳交網站)：</label>
+            <button id="copyBtn">📋 一鍵複製</button>
+        </div>
         <div id="result" class="result-box">尚未產出...</div>
     </div>
 </div>
@@ -176,6 +212,7 @@
     const previewContainer = document.getElementById('preview-container');
     const submitBtn = document.getElementById('submitBtn');
     const resultBox = document.getElementById('result');
+    const copyBtn = document.getElementById('copyBtn');
     
     let selectedFiles = [];
 
@@ -224,7 +261,7 @@
 
     submitBtn.addEventListener('click', async () => {
         const text = document.getElementById('textInput').value;
-        const styleAdjustment = document.getElementById('styleInput').value; // 抓取風格微調文字
+        const styleAdjustment = document.getElementById('styleInput').value;
 
         if (!text && selectedFiles.length === 0) {
             alert('請至少輸入文字或上傳一張照片！');
@@ -234,6 +271,7 @@
         submitBtn.disabled = true;
         submitBtn.innerText = '處理中，請稍候...';
         resultBox.innerText = 'AI 正在分析與撰寫中...';
+        copyBtn.style.display = 'none';
 
         try {
             const base64Images = await Promise.all(selectedFiles.map(file => getBase64(file)));
@@ -241,14 +279,18 @@
             const response = await fetch('/api/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                // 將 styleAdjustment 一併傳給後端
                 body: JSON.stringify({ text: text, styleAdjustment: styleAdjustment, images: base64Images })
             });
 
             const data = await response.json();
 
             if (response.ok) {
-                resultBox.innerText = data.result;
+                // 將 AI 回傳的純文字進行 HTML 格式化，替【標題】加上專屬 CSS 類別，並轉換換行符號
+                let formattedText = data.result.replace(/(【.*?】)/g, '<span class="highlight-title">$1</span>');
+                formattedText = formattedText.replace(/\n/g, '<br>');
+                
+                resultBox.innerHTML = formattedText;
+                copyBtn.style.display = 'inline-block'; // 顯示複製按鈕
             } else {
                 resultBox.innerText = `發生錯誤: ${data.error}`;
             }
@@ -258,6 +300,25 @@
             submitBtn.disabled = false;
             submitBtn.innerText = '產出結果';
         }
+    });
+
+    // 一鍵複製功能
+    copyBtn.addEventListener('click', () => {
+        // 抓取純文字內容 (去除 HTML 標籤)，確保貼到其他網站時格式正確
+        const textToCopy = resultBox.innerText;
+        
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            const originalText = copyBtn.innerText;
+            copyBtn.innerText = '✅ 已複製！';
+            copyBtn.style.background = '#7e99b0';
+            
+            setTimeout(() => {
+                copyBtn.innerText = originalText;
+                copyBtn.style.background = '#8ba89f';
+            }, 2000);
+        }).catch(err => {
+            alert('複製失敗，請手動反白複製。');
+        });
     });
 </script>
 

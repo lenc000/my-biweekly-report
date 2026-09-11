@@ -146,32 +146,62 @@
             font-weight: bold;
             cursor: pointer;
             transition: background-color 0.3s;
-            display: none; /* 預設隱藏，有結果才顯示 */
+            display: none; 
         }
         button#copyBtn:hover { background: #759289; }
 
+        /* 結果框：對齊輸入框的深度與粗度 */
         .result-box { 
             background: #f8fafc; 
             padding: 25px; 
             border-radius: 10px; 
-            border: 1px solid #e2e8f0; 
+            border: 1.5px solid #d1d5db; /* 加粗與加深邊框 */
             line-height: 1.7; 
             font-size: 16px; 
             min-height: 120px; 
             color: #334155; 
+            box-sizing: border-box;
         }
 
-        /* AI 產出標題的重點樣式 */
+        /* 個別區塊與小按鈕排版 */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            border-bottom: 1px dashed #cbd5e1;
+            padding-bottom: 5px;
+        }
+        
+        .section-header:first-child {
+            margin-top: 0;
+        }
+
         .highlight-title {
             font-weight: 900;
             color: #4b6a85;
             background: rgba(126, 153, 176, 0.15);
             padding: 4px 8px;
             border-radius: 6px;
-            display: inline-block;
-            margin-top: 15px;
-            margin-bottom: 5px;
             letter-spacing: 1px;
+        }
+
+        .section-copy-btn {
+            background: #cbd5e1;
+            color: #334155;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .section-copy-btn:hover { background: #94a3b8; color: white; }
+        
+        .section-content {
+            margin-bottom: 20px;
         }
     </style>
 </head>
@@ -200,8 +230,8 @@
 
     <div id="result-container">
         <div class="result-header-row">
-            <label>產出結果 (請直接複製貼上至繳交網站)：</label>
-            <button id="copyBtn">📋 一鍵複製</button>
+            <label>產出結果：</label>
+            <button id="copyBtn">📋 全部複製</button>
         </div>
         <div id="result" class="result-box">尚未產出...</div>
     </div>
@@ -215,6 +245,7 @@
     const copyBtn = document.getElementById('copyBtn');
     
     let selectedFiles = [];
+    let fullRawText = ""; // 用來存儲純文字完整結果，避免複製到按鈕文字
 
     imageInput.addEventListener('change', (e) => {
         const files = Array.from(e.target.files);
@@ -285,12 +316,56 @@
             const data = await response.json();
 
             if (response.ok) {
-                // 將 AI 回傳的純文字進行 HTML 格式化，替【標題】加上專屬 CSS 類別，並轉換換行符號
-                let formattedText = data.result.replace(/(【.*?】)/g, '<span class="highlight-title">$1</span>');
-                formattedText = formattedText.replace(/\n/g, '<br>');
+                fullRawText = data.result; // 保存完整的純文字供「全部複製」使用
                 
-                resultBox.innerHTML = formattedText;
-                copyBtn.style.display = 'inline-block'; // 顯示複製按鈕
+                // 利用 Regex 將 AI 回傳的結果按【標題】拆分成陣列
+                const sections = fullRawText.split(/(?=【.*?】)/).filter(s => s.trim() !== '');
+                
+                let htmlContent = '';
+                
+                sections.forEach(section => {
+                    // 區分出標題與內文
+                    const match = section.match(/^(【.*?】)\s*([\s\S]*)$/);
+                    if (match) {
+                        const title = match[1];
+                        const content = match[2].trim();
+                        // 為每個區塊生成帶有專屬複製按鈕的 HTML
+                        htmlContent += `
+                            <div>
+                                <div class="section-header">
+                                    <span class="highlight-title">${title}</span>
+                                    <button class="section-copy-btn" data-content="${encodeURIComponent(content)}">複製這段</button>
+                                </div>
+                                <div class="section-content">${content.replace(/\n/g, '<br>')}</div>
+                            </div>
+                        `;
+                    } else {
+                        // 若無標題則直接輸出
+                        htmlContent += `<div class="section-content">${section.replace(/\n/g, '<br>')}</div>`;
+                    }
+                });
+
+                resultBox.innerHTML = htmlContent;
+                copyBtn.style.display = 'inline-block';
+                
+                // 綁定所有「複製這段」小按鈕的點擊事件
+                document.querySelectorAll('.section-copy-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const contentToCopy = decodeURIComponent(this.getAttribute('data-content'));
+                        navigator.clipboard.writeText(contentToCopy).then(() => {
+                            const originalText = this.innerText;
+                            this.innerText = '✅ 已複製';
+                            this.style.background = '#8ba89f';
+                            this.style.color = 'white';
+                            setTimeout(() => {
+                                this.innerText = originalText;
+                                this.style.background = '#cbd5e1';
+                                this.style.color = '#334155';
+                            }, 2000);
+                        }).catch(err => alert('複製失敗'));
+                    });
+                });
+
             } else {
                 resultBox.innerText = `發生錯誤: ${data.error}`;
             }
@@ -302,14 +377,11 @@
         }
     });
 
-    // 一鍵複製功能
+    // 全部複製按鈕
     copyBtn.addEventListener('click', () => {
-        // 抓取純文字內容 (去除 HTML 標籤)，確保貼到其他網站時格式正確
-        const textToCopy = resultBox.innerText;
-        
-        navigator.clipboard.writeText(textToCopy).then(() => {
+        navigator.clipboard.writeText(fullRawText).then(() => {
             const originalText = copyBtn.innerText;
-            copyBtn.innerText = '✅ 已複製！';
+            copyBtn.innerText = '✅ 全部已複製！';
             copyBtn.style.background = '#7e99b0';
             
             setTimeout(() => {

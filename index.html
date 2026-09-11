@@ -218,7 +218,7 @@
     </div>
 
     <div class="form-group">
-        <label>3. 上傳相關照片：</label>
+        <label>3. 上傳相關照片 (最多 10 張)：</label>
         <input type="file" id="imageInput" multiple accept="image/*">
         <div id="preview-container"></div>
     </div>
@@ -246,6 +246,14 @@
 
     imageInput.addEventListener('change', (e) => {
         const files = Array.from(e.target.files);
+        
+        // 檢查：如果加上這次選的照片超過 10 張，就阻擋並跳出警告
+        if (selectedFiles.length + files.length > 10) {
+            alert(`超過上傳限制！目前已選 ${selectedFiles.length} 張，最多只能上傳 10 張照片。請重新選擇。`);
+            imageInput.value = ''; // 清空這次的選擇
+            return;
+        }
+
         selectedFiles = selectedFiles.concat(files);
         imageInput.value = '';
         renderPreviews();
@@ -278,7 +286,7 @@
         });
     }
 
-    // 新增：圖片壓縮功能 (控制在最大寬度 800px，畫質 70%)
+    // 圖片壓縮功能 (控制在最大寬度 800px，畫質 70%)
     const compressImage = (file) => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -302,7 +310,6 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    // 輸出壓縮後的 Base64
                     const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
                     resolve(compressedBase64);
                 };
@@ -327,7 +334,6 @@
         copyBtn.style.display = 'none';
 
         try {
-            // 使用壓縮功能取代原本的 getBase64
             const base64Images = await Promise.all(selectedFiles.map(file => compressImage(file)));
 
             const response = await fetch('/api/generate', {
@@ -336,7 +342,6 @@
                 body: JSON.stringify({ text: text, styleAdjustment: styleAdjustment, images: base64Images })
             });
 
-            // 處理 Vercel Payload 過大等非 JSON 錯誤
             if (!response.ok) {
                 const contentType = response.headers.get("content-type");
                 if (contentType && contentType.indexOf("application/json") !== -1) {

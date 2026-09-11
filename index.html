@@ -126,7 +126,6 @@
         button#submitBtn:active { transform: translateY(2px); }
         button#submitBtn:disabled { background: #cbd5e1; cursor: not-allowed; transform: none; }
         
-        /* 產出結果區塊與按鈕排版 */
         #result-container { margin-top: 30px; }
         .result-header-row {
             display: flex;
@@ -150,12 +149,11 @@
         }
         button#copyBtn:hover { background: #759289; }
 
-        /* 結果框：對齊輸入框的深度與粗度 */
         .result-box { 
             background: #f8fafc; 
             padding: 25px; 
             border-radius: 10px; 
-            border: 1.5px solid #d1d5db; /* 加粗與加深邊框 */
+            border: 1.5px solid #d1d5db; 
             line-height: 1.7; 
             font-size: 16px; 
             min-height: 120px; 
@@ -163,7 +161,6 @@
             box-sizing: border-box;
         }
 
-        /* 個別區塊與小按鈕排版 */
         .section-header {
             display: flex;
             justify-content: space-between;
@@ -245,7 +242,7 @@
     const copyBtn = document.getElementById('copyBtn');
     
     let selectedFiles = [];
-    let fullRawText = ""; // 用來存儲純文字完整結果，避免複製到按鈕文字
+    let fullRawText = ""; 
 
     imageInput.addEventListener('change', (e) => {
         const files = Array.from(e.target.files);
@@ -281,11 +278,36 @@
         });
     }
 
-    const getBase64 = (file) => {
+    // 新增：圖片壓縮功能 (控制在最大寬度 800px，畫質 70%)
+    const compressImage = (file) => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 800;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > MAX_WIDTH) {
+                        height = Math.round((height * MAX_WIDTH) / width);
+                        width = MAX_WIDTH;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // 輸出壓縮後的 Base64
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                    resolve(compressedBase64);
+                };
+                img.onerror = error => reject(error);
+            };
             reader.onerror = error => reject(error);
         });
     };
@@ -305,7 +327,8 @@
         copyBtn.style.display = 'none';
 
         try {
-            const base64Images = await Promise.all(selectedFiles.map(file => getBase64(file)));
+            // 使用壓縮功能取代原本的 getBase64
+            const base64Images = await Promise.all(selectedFiles.map(file => compressImage(file)));
 
             const response = await fetch('/api/generate', {
                 method: 'POST',
@@ -313,23 +336,34 @@
                 body: JSON.stringify({ text: text, styleAdjustment: styleAdjustment, images: base64Images })
             });
 
+            // 處理 Vercel Payload 過大等非 JSON 錯誤
+            if (!response.ok) {
+                const contentType = response.headers.get("content-type");
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || '伺服器發生錯誤');
+                } else {
+                    const errorText = await response.text();
+                    if (errorText.includes('FUNCTION_PAYLOAD_TOO_LARGE')) {
+                        throw new Error('照片總檔案依然太大，請減少上傳的圖片數量。');
+                    }
+                    throw new Error('伺服器無效回應，請稍後再試。');
+                }
+            }
+
             const data = await response.json();
 
-            if (response.ok) {
-                fullRawText = data.result; // 保存完整的純文字供「全部複製」使用
+            if (data.result) {
+                fullRawText = data.result;
                 
-                // 利用 Regex 將 AI 回傳的結果按【標題】拆分成陣列
                 const sections = fullRawText.split(/(?=【.*?】)/).filter(s => s.trim() !== '');
-                
                 let htmlContent = '';
                 
                 sections.forEach(section => {
-                    // 區分出標題與內文
                     const match = section.match(/^(【.*?】)\s*([\s\S]*)$/);
                     if (match) {
                         const title = match[1];
                         const content = match[2].trim();
-                        // 為每個區塊生成帶有專屬複製按鈕的 HTML
                         htmlContent += `
                             <div>
                                 <div class="section-header">
@@ -340,7 +374,6 @@
                             </div>
                         `;
                     } else {
-                        // 若無標題則直接輸出
                         htmlContent += `<div class="section-content">${section.replace(/\n/g, '<br>')}</div>`;
                     }
                 });
@@ -348,7 +381,6 @@
                 resultBox.innerHTML = htmlContent;
                 copyBtn.style.display = 'inline-block';
                 
-                // 綁定所有「複製這段」小按鈕的點擊事件
                 document.querySelectorAll('.section-copy-btn').forEach(btn => {
                     btn.addEventListener('click', function() {
                         const contentToCopy = decodeURIComponent(this.getAttribute('data-content'));
@@ -365,9 +397,8 @@
                         }).catch(err => alert('複製失敗'));
                     });
                 });
-
             } else {
-                resultBox.innerText = `發生錯誤: ${data.error}`;
+                resultBox.innerText = `發生錯誤: 未知錯誤`;
             }
         } catch (error) {
             resultBox.innerText = `連線失敗: ${error.message}`;
@@ -377,7 +408,6 @@
         }
     });
 
-    // 全部複製按鈕
     copyBtn.addEventListener('click', () => {
         navigator.clipboard.writeText(fullRawText).then(() => {
             const originalText = copyBtn.innerText;

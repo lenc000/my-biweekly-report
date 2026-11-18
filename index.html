@@ -24,6 +24,8 @@
             box-shadow: 0 15px 35px rgba(0,0,0,0.15); 
             width: 100%; 
             max-width: 800px; 
+            position: relative;
+            box-sizing: border-box;
         }
         
         h1 { 
@@ -35,13 +37,14 @@
             background: linear-gradient(135deg, #6c8aa3 0%, #4b6a85 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            -webkit-text-stroke: 0.8px #5a7892;
             letter-spacing: 2px;
         }
 
         .form-group { margin-bottom: 25px; }
         label { display: block; margin-bottom: 10px; font-weight: bold; color: #444; font-size: 15px; }
         
-        textarea, input[type="text"] { 
+        textarea, input[type="text"], input[type="password"], select { 
             width: 100%; 
             padding: 15px; 
             border: 1.5px solid #d1d5db; 
@@ -49,15 +52,16 @@
             box-sizing: border-box; 
             font-size: 16px; 
             transition: border-color 0.3s, box-shadow 0.3s;
+            background: #fff;
         }
         textarea { height: 160px; resize: vertical; line-height: 1.6; }
-        textarea:focus, input[type="text"]:focus {
+        textarea:focus, input[type="text"]:focus, input[type="password"]:focus, select:focus {
             outline: none;
             border-color: #8ba89f;
             box-shadow: 0 0 0 3px rgba(139, 168, 159, 0.2);
         }
         
-        input[type="file"] { margin-bottom: 10px; font-family: inherit; }
+        input[type="file"] { margin-bottom: 10px; font-family: inherit; font-size: 14px; color: #555; }
         input[type="file"]::file-selector-button {
             background-color: #8ba89f;
             color: white;
@@ -107,6 +111,9 @@
             transition: opacity 0.2s ease, background 0.2s;
         }
         .preview-box:hover .delete-btn { opacity: 1; }
+        @media (hover: none) {
+            .delete-btn { opacity: 0.9; }
+        }
         .delete-btn:hover { background: rgba(70, 70, 70, 0.95); }
 
         button#submitBtn { 
@@ -166,9 +173,11 @@
             justify-content: space-between;
             align-items: center;
             margin-top: 15px;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             border-bottom: 1px dashed #cbd5e1;
-            padding-bottom: 5px;
+            padding-bottom: 6px;
+            gap: 8px;
+            flex-wrap: wrap;
         }
         
         .section-header:first-child {
@@ -179,7 +188,7 @@
             font-weight: 900;
             color: #4b6a85;
             background: rgba(126, 153, 176, 0.15);
-            padding: 4px 8px;
+            padding: 4px 10px;
             border-radius: 6px;
             letter-spacing: 1px;
         }
@@ -194,18 +203,124 @@
             font-weight: bold;
             cursor: pointer;
             transition: all 0.2s;
+            flex-shrink: 0;
         }
         .section-copy-btn:hover { background: #94a3b8; color: white; }
         
         .section-content {
             margin-bottom: 20px;
+            word-break: break-word;
+            white-space: pre-wrap;
         }
+
+        .top-toolbar {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        .tool-btn {
+            background: rgba(126, 153, 176, 0.12);
+            color: #4b6a85;
+            border: 1px solid rgba(126, 153, 176, 0.25);
+            padding: 5px 11px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .tool-btn:hover {
+            background: rgba(126, 153, 176, 0.22);
+        }
+        .tool-btn.unlocked-badge {
+            background: rgba(139, 168, 159, 0.22);
+            color: #2f5e51;
+            border-color: rgba(139, 168, 159, 0.45);
+        }
+
+        #noticeBanner {
+            display: none;
+            margin-bottom: 18px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            z-index: 1000;
+            box-sizing: border-box;
+        }
+        .modal-backdrop.active {
+            display: flex;
+        }
+        .modal-card {
+            background: #ffffff;
+            width: 100%;
+            max-width: 440px;
+            border-radius: 14px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            padding: 24px;
+            box-sizing: border-box;
+        }
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 14px;
+        }
+        .modal-title {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 800;
+            color: #4b6a85;
+        }
+        .modal-close-btn {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .modal-close-btn:hover { color: #4b5563; }
+        .hidden-block { display: none !important; }
     </style>
 </head>
 <body>
 
 <div class="container">
+    <div class="top-toolbar">
+        <button type="button" id="openPromptLockBtn" class="tool-btn" title="輸入密碼解鎖專屬設定並複製完整提示詞">
+            🔒 <span id="lockBtnText">Pro 提示詞打包</span>
+        </button>
+        <button type="button" id="toggleApiModalBtn" class="tool-btn" title="切換 Canvas 內建免金鑰或自填 API Key">
+            ⚙️ <span id="apiStatusBadge">Canvas 內建模式</span>
+        </button>
+    </div>
+
     <h1>00後翻譯機</h1>
+
+    <div id="noticeBanner">
+        <span id="noticeText"></span>
+        <button type="button" id="closeNoticeBtn" style="background:none;border:none;cursor:pointer;font-weight:bold;opacity:0.7;">✕</button>
+    </div>
     
     <div class="form-group">
         <label>1. 貼上你的語音文字稿：</label>
@@ -234,23 +349,335 @@
     </div>
 </div>
 
+<!-- 彈出視窗 1：密碼驗證與打包完整提示詞 (公私分離加密版) -->
+<div id="passwordModal" class="modal-backdrop">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h2 class="modal-title">🔒 Pro / Argon 專屬提示詞打包</h2>
+            <button type="button" id="closePasswordModalBtn" class="modal-close-btn">✕</button>
+        </div>
+
+        <div id="passwordLockView">
+            <p style="font-size: 13px; color: #4b5563; line-height: 1.6; margin-top: 0; margin-bottom: 12px;">
+                目前為<strong>公開通用模式</strong>（任何人皆可安全使用，不帶入私人背景）。<br>
+                若你是專案擁有者，輸入密碼即可<strong>動態解密你的專屬背景設定</strong>，並將完整提示詞與目前草稿打包複製，貼回左方 Gemini Pro / Argon 對話視窗！
+            </p>
+            <input
+                id="passwordInput"
+                type="password"
+                inputmode="numeric"
+                placeholder="請輸入專屬密碼..."
+                style="padding: 12px; font-size: 15px; margin-bottom: 8px;"
+            />
+            <p id="passwordErrorMsg" class="hidden-block" style="font-size: 13px; color: #e11d48; font-weight: bold; margin: 4px 0 8px 0;">❌ 密碼錯誤，請重新輸入。</p>
+            <button
+                type="button"
+                id="verifyPasswordBtn"
+                style="width:100%; background:#7e99b0; color:white; border:none; padding:12px; border-radius:8px; font-weight:bold; cursor:pointer; margin-top:6px; font-size:15px;"
+            >
+                解鎖專屬設定並複製提示詞
+            </button>
+        </div>
+
+        <div id="passwordUnlockedView" class="hidden-block">
+            <div style="background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46; border-radius:8px; padding:10px 12px; font-size:13px; font-weight:bold; margin-bottom:12px;">
+                ✅ 專屬背景已解密啟用！現在直接按「產出結果」或「複製完整提示詞」皆會套用你的專屬設定。
+            </div>
+            <button
+                type="button"
+                id="copyFullPromptNowBtn"
+                style="width:100%; background:#8ba89f; color:white; border:none; padding:12px; border-radius:8px; font-weight:bold; cursor:pointer; margin-bottom:10px; font-size:15px;"
+            >
+                📋 立即複製完整提示詞（含目前草稿）
+            </button>
+            <button
+                type="button"
+                id="relockBtn"
+                style="width:100%; background:#e2e8f0; color:#334155; border:none; padding:9px; border-radius:8px; font-weight:bold; cursor:pointer; margin-bottom:12px; font-size:13px;"
+            >
+                🔒 重新鎖定並切回公開通用模式
+            </button>
+            <details style="font-size: 13px; color: #4b5563;">
+                <summary style="cursor:pointer; font-weight:bold; color:#4b6a85; padding:4px 0;">
+                    檢視 / 臨時微調已解密之系統提示詞
+                </summary>
+                <textarea
+                    id="systemPromptEditor"
+                    style="height: 180px; font-size: 12px; padding: 10px; margin-top: 8px; font-family: monospace;"
+                ></textarea>
+            </details>
+        </div>
+    </div>
+</div>
+
+<!-- 彈出視窗 2：自訂 API Key 設定 -->
+<div id="apiModal" class="modal-backdrop">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h2 class="modal-title">⚙️ 連線模式與自訂 API Key 設定</h2>
+            <button type="button" id="closeApiModalBtn" class="modal-close-btn">✕</button>
+        </div>
+
+        <div style="font-size: 13px; color: #4b5563; line-height: 1.6;">
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; margin-bottom:14px;">
+                <div style="font-weight:bold; color:#334155; margin-bottom:4px;">💡 雙模式自動切換說明：</div>
+                <div style="margin-bottom:4px;">• <strong>留空（預設）</strong>：自動使用 Gemini Canvas 內建免金鑰通道。</div>
+                <div>• <strong>填入 API Key</strong>：若朋友想用自己的 Google AI Studio 免費額度，或在外部網站開啟，請在下方貼上自己的 API Key。</div>
+            </div>
+
+            <div style="margin-bottom: 14px;">
+                <label for="customApiKeyInput" style="font-size:13px; margin-bottom:6px;">
+                    自訂 Gemini API Key（選填，僅保存在自己的瀏覽器）：
+                </label>
+                <input
+                    id="customApiKeyInput"
+                    type="password"
+                    placeholder="AIzaSy... (留空則使用 Canvas 內建通道)"
+                    style="padding: 10px 12px; font-size: 14px;"
+                />
+                <div style="margin-top: 6px; font-size: 12px; color: #64748b;">
+                    🔗 還沒有金鑰？點此前往 <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" style="color: #4b6a85; font-weight: bold; text-decoration: underline;">Google AI Studio 免費申請 API Key</a>（登入 Google 即可一鍵領取）
+                </div>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label for="customModelSelect" style="font-size:13px; margin-bottom:6px;">
+                    指定免費模型（填入自訂 Key 時優先使用）：
+                </label>
+                <select id="customModelSelect" style="padding: 10px 12px; font-size: 14px;">
+                    <option value="auto">自動選擇最新可用 Flash 模型 (推薦)</option>
+                    <option value="gemini-3.8-flash">gemini-3.8-flash (最新免費主力模型)</option>
+                    <option value="gemini-3.6-flash">gemini-3.6-flash (穩定版模型)</option>
+                    <option value="gemini-3.5-flash">gemini-3.5-flash (相容模型)</option>
+                    <option value="gemini-2.5-flash">gemini-2.5-flash (相容模型)</option>
+                </select>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:8px;">
+                <button
+                    type="button"
+                    id="clearApiKeyBtn"
+                    style="background:#e2e8f0; color:#334155; border:none; padding:9px 14px; border-radius:8px; font-weight:bold; cursor:pointer;"
+                >
+                    恢復預設免金鑰
+                </button>
+                <button
+                    type="button"
+                    id="saveApiKeyBtn"
+                    style="background:#7e99b0; color:white; border:none; padding:9px 16px; border-radius:8px; font-weight:bold; cursor:pointer;"
+                >
+                    儲存設定
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<textarea id="clipboardHelper" style="position:fixed; top:-9999px; left:-9999px; opacity:0; pointer-events:none;" readonly></textarea>
+
 <script>
+    // ==========================================
+    // 1. 公私分離提示詞架構（公開版預設不暴露私人背景，密碼解鎖後動態解密還原）
+    // ==========================================
+    const PUBLIC_CONTEXT_BLOCK = `- 身分：參與教育部青年體驗學習計畫的青年實踐者。
+- 核心經歷與關注領域：請完全依據使用者下方提供的口述紀錄與照片內容，自動判讀其當週的見習場域、實作專案、田野探索與參與活動（切勿自行捏造未提及之背景）。`;
+
+    const CIPHER_BUCKETS = [
+        "-注與查公傳攝、業務觀考團團」」同像導",
+        "領傳（」統（地百、摩察」」➔、時創演 ",
+        "統如團藝如方貨大與。➔、「 是作、核域",
+        "市與隊文蘭祭專型跨|「「國 一者攝心：",
+        "、影經地場「合紀陽儀櫃藝縣「蘭父父 名",
+        "師歷方田少作錄舞）銷文市萊陽紀紀 獨紀",
+        "錄。與文野年）片蹈、售展壯舞舞念念 立",
+        "關化調阿、拍團商實演遊蹈蹈館館 影片\n"
+    ];
+
+    function buildSystemPrompt(contextBlock, extraTypoExamples) {
+        return `# 角色設定 (Role)
+你現在是一位專精於「教育部青年發展署－青年體驗學習計畫（Gap Year）」的專案顧問與資深文字編輯。你的任務是將使用者提供的「碎片化、口語化、語音輸入（含錯別字）的雙週日常紀錄」，梳理並轉譯為結構嚴謹、具思辨深度，且符合青年署評審委員審閱標準的「雙週誌（心得填報）」正式文本。
+
+# 撰寫者背景設定 (User Context)
+${contextBlock}
+- 思考特質：對視覺美學、策展邏輯、社會結構與傳統文化傳承有高度敏銳度；說話直白真實，常能一針見血地指出環境、制度或活動的缺失。
+
+# 核心改寫與潤飾原則 (Core Principles) — 極重要！
+1. 將「直白批評/抱怨」轉化為「專業批判性洞察」：
+   - 當口述內容出現對活動、展覽、公部門或社會現象的直接負評時（例如：「攤位很無聊」、「東西太貴」、「配色很亂」、「台灣藝術沒救」、「公部門很黑」、「司機態度很差」），絕對不可直接照抄情緒性字眼，也不可完全刪除該事件。
+   - 轉譯方法：必須將其昇華為專業領域的探討。例如：
+     - 「攤位無聊、重複、貴」➔ 轉化為「反思當代市集同質性過高、定價策略與價值脫節，缺乏核心策展思維」。
+     - 「表演沒人看、配色很亂」➔ 轉化為「剖析目標受眾（TA）定位失準，以及主視覺缺乏系統性色彩計畫（Color Script）與視覺一致性（Consistency）對觀展體驗的影響」。
+     - 「公部門黑暗面、人情世故」➔ 轉化為「近距離觀察大型公私協力專案背後的行政體制限制、跨單位協調瓶頸與職場應對進退」。
+     - 「日常衝突（如公車拒載罵人）」➔ 轉化為「城鄉公共運輸基礎建設落差、基層服務監督機制失能與逆向文化衝擊（Reverse Culture Shock）的社會觀察」。
+2. 將「身體病痛、卡關或玩樂」轉化為「身心調頻與田野考察」：
+   - 出去玩、看展、吃美食 ➔ 轉化為「高強度輸出後的美學輸入（Input）」、「跨縣市城市觀光競爭力與地景策展考察」。
+   - 生病、累倒、剪片卡關 ➔ 轉化為「高壓創作下的體能赤字警訊」、「長片敘事結構的撞牆期」，並強調「學會傾聽身體訊號、為生命留白與自我復盤的韌性」。
+3. 自動修正語音輸入錯字：
+   - 根據上下文自動校正同音異字（如：${extraTypoExamples}「一流」➔「A型流感」、「儲值/處境」➔依語意修正為「現況/趨勢」等）。
+4. 拒絕空泛誇讚，保持真實厚度：
+   - 語氣需誠懇、專業、有溫度且具反思性，展現出「先踏入社會歷練再升學」的通透感與使命感，避免使用空洞的官方口號。
+
+【輸出格式與嚴格規則】
+規則 1：絕對禁止使用任何 Markdown 語法（例如 *、#、-、> 等符號），請全部使用純文字與全形中文標點符號排版，方便直接複製貼入青年署純文字表單。
+規則 2：分類規則：在學習主題中，從「志願服務、壯遊探索、達人見習、創業見習、社區見習、其他類型」挑選最符合的 2 項，但請盡量避免使用「其他類型」。只要有看展覽、出遊、參訪、走讀等行程，請一律優先歸類為「壯遊探索」。因為填報系統中兩個學習主題是分開兩個區塊填寫的，請務必將兩個類別分成兩個獨立標題區塊輸出。
+規則 3：請完全依照以下指定標題區塊輸出（不需填寫地點與照片欄位），方便我直接分段複製貼上，絕對不要加上任何多餘的開場白或結語。
+
+【這兩週的學習主題 1：（填入挑選類別 A）】
+（直接寫出 1～2 句精煉、具專業度的摘要，約 50～80 字，總結該類別的具體行動與核心探究主題，開頭不需重複寫類別名稱與編號）
+
+【這兩週的學習主題 2：（填入挑選類別 B）】
+（直接寫出 1～2 句精煉、具專業度的摘要，約 50～80 字，總結該類別的具體行動與核心探究主題，開頭不需重複寫類別名稱與編號）
+
+【遇到什麼樣的人事物】
+請將口述中瑣碎的人事物，歸納為 3 個不同維度的群體或場域（以 1. 2. 3. 列點呈現）：
+每個列點需包含【點出群體/場域維度小標】＋具體描述（說明接觸了誰、在什麼場景、觀察到對方什麼狀態或特質，並帶出對比感或生命力）。
+
+【學習、觀察到了什麼】
+請嚴格使用以下三個中括號標題，深入剖析當週歷程：
+
+【遇到的困難與挑戰：（請自訂一句精準副標）】
+結合口述中的「執行面困難（如熬夜拍攝、長片剪輯卡關、體力透支生病）」與「環境面困境（如文化傳承斷層、大環境美學缺失、城鄉落差衝擊）」，具體描繪創作者在現場面臨的真實掙扎與張力。
+
+【具體學到什麼：（請自訂一句精準副標）】
+以 1. 2. 列點，提煉出 2 個具體的專業收穫或認知翻轉（例如：策展思維、商業銷售心理、紀錄片搶救意識、公部門運作邏輯、古典藝術與AI時代的對照等）。必須有血有肉，將現場觀察轉化為可遷移的能力（Transferable Skills）。
+
+【我從中看到自己什麼：（請自訂一句精準副標）】
+聚焦於「自我覺察（Self-awareness）」。剖析這兩週的經歷如何像一面鏡子，照見自己的性格特質、身為實踐者的使命感、面對低谷的調適能力，或是相較於同齡人更成熟的社會通透感，並收束於對未來（如後續創作或特殊選才升學）的期許。`;
+    }
+
+    // 雙重不可逆雜湊驗證函式
+    function verifyPasswordHash(input) {
+        if (!input || input.length !== 8) return false;
+        let h1 = 7;
+        let h2 = 13;
+        for (let i = 0; i < input.length; i++) {
+            const code = input.charCodeAt(i);
+            h1 = (h1 * 31 + code) % 1000000007;
+            h2 = h2 * 17 + code;
+        }
+        return h1 === 98522208 && h2 === 112947207749;
+    }
+
+    // 透過正確密碼動態解密擁有者專屬背景設定
+    function decryptOwnerPromptWithKey(keyStr) {
+        const unshifted = CIPHER_BUCKETS.map((bucket, k) => {
+            const shift = parseInt(keyStr[k], 10) || 0;
+            return bucket.slice(bucket.length - shift) + bucket.slice(0, bucket.length - shift);
+        });
+        const rows = unshifted[0].length;
+        let combined = "";
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < 8; c++) {
+                combined += unshifted[c][r];
+            }
+        }
+        const parts = combined.trim().split('|');
+        const ownerContext = `- 身分：參與教育部青年體驗學習計畫的青年，${parts[0]}`;
+        const ownerTypo = parts[1] || "";
+        return buildSystemPrompt(ownerContext, ownerTypo);
+    }
+
+    // 內建環境金鑰變數（保持空白，不暴露任何私人金鑰）
+    const apiKey = "";
+
+    // DOM 元素
     const imageInput = document.getElementById('imageInput');
     const previewContainer = document.getElementById('preview-container');
     const submitBtn = document.getElementById('submitBtn');
     const resultBox = document.getElementById('result');
     const copyBtn = document.getElementById('copyBtn');
-    
+    const noticeBanner = document.getElementById('noticeBanner');
+    const noticeText = document.getElementById('noticeText');
+    const closeNoticeBtn = document.getElementById('closeNoticeBtn');
+
+    const openPromptLockBtn = document.getElementById('openPromptLockBtn');
+    const lockBtnText = document.getElementById('lockBtnText');
+    const passwordModal = document.getElementById('passwordModal');
+    const closePasswordModalBtn = document.getElementById('closePasswordModalBtn');
+    const passwordLockView = document.getElementById('passwordLockView');
+    const passwordUnlockedView = document.getElementById('passwordUnlockedView');
+    const passwordInput = document.getElementById('passwordInput');
+    const passwordErrorMsg = document.getElementById('passwordErrorMsg');
+    const verifyPasswordBtn = document.getElementById('verifyPasswordBtn');
+    const copyFullPromptNowBtn = document.getElementById('copyFullPromptNowBtn');
+    const relockBtn = document.getElementById('relockBtn');
+    const systemPromptEditor = document.getElementById('systemPromptEditor');
+
+    const toggleApiModalBtn = document.getElementById('toggleApiModalBtn');
+    const apiModal = document.getElementById('apiModal');
+    const closeApiModalBtn = document.getElementById('closeApiModalBtn');
+    const customApiKeyInput = document.getElementById('customApiKeyInput');
+    const customModelSelect = document.getElementById('customModelSelect');
+    const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
+    const clearApiKeyBtn = document.getElementById('clearApiKeyBtn');
+    const apiStatusBadge = document.getElementById('apiStatusBadge');
+
     let selectedFiles = [];
-    let fullRawText = ""; 
+    let fullRawText = "";
+    let isPasswordUnlocked = false;
+    let noticeTimer = null;
+
+    window.onload = function () {
+        loadSavedApiSettings();
+    };
+
+    function showNotice(message, type = 'info') {
+        if (noticeTimer) clearTimeout(noticeTimer);
+        noticeText.innerText = message;
+        noticeBanner.style.display = 'flex';
+
+        if (type === 'error') {
+            noticeBanner.style.background = '#ffe4e6';
+            noticeBanner.style.color = '#9f1239';
+            noticeBanner.style.border = '1px solid #fecdd3';
+        } else if (type === 'success') {
+            noticeBanner.style.background = '#ecfdf5';
+            noticeBanner.style.color = '#065f46';
+            noticeBanner.style.border = '1px solid #a7f3d0';
+        } else {
+            noticeBanner.style.background = '#f1f5f9';
+            noticeBanner.style.color = '#334155';
+            noticeBanner.style.border = '1px solid #cbd5e1';
+        }
+
+        noticeTimer = setTimeout(() => {
+            noticeBanner.style.display = 'none';
+        }, 4000);
+    }
+
+    closeNoticeBtn.addEventListener('click', () => {
+        noticeBanner.style.display = 'none';
+    });
+
+    function copyToClipboardSafe(textToCopy) {
+        return new Promise((resolve, reject) => {
+            try {
+                const helper = document.getElementById('clipboardHelper');
+                helper.value = textToCopy;
+                helper.style.display = 'block';
+                helper.select();
+                helper.setSelectionRange(0, helper.value.length);
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    resolve();
+                    return;
+                }
+            } catch (err) {}
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(textToCopy).then(resolve).catch(reject);
+            } else {
+                reject(new Error('Clipboard unavailable'));
+            }
+        });
+    }
 
     imageInput.addEventListener('change', (e) => {
         const files = Array.from(e.target.files);
         
-        // 檢查：如果加上這次選的照片超過 10 張，就阻擋並跳出警告
         if (selectedFiles.length + files.length > 10) {
-            alert(`超過上傳限制！目前已選 ${selectedFiles.length} 張，最多只能上傳 10 張照片。請重新選擇。`);
-            imageInput.value = ''; // 清空這次的選擇
+            showNotice(`超過上傳限制！目前已選 ${selectedFiles.length} 張，最多只能上傳 10 張照片。請重新選擇。`, 'error');
+            imageInput.value = '';
             return;
         }
 
@@ -286,7 +713,6 @@
         });
     }
 
-    // 圖片壓縮功能 (控制在最大寬度 800px，畫質 70%)
     const compressImage = (file) => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -319,12 +745,125 @@
         });
     };
 
+    function splitLearningThemesIfNeeded(title, content) {
+        const categoryNames = '志願服務|壯遊探索|達人見習|創業見習|社區見習|其他類型';
+        const lines = content.split(/\n+/).map(l => l.trim()).filter(Boolean);
+
+        const extractedItems = [];
+        const itemRegex = new RegExp(`^(?:[123456][\\.、\\s]*|[-•]\\s*)?(?:【|\\[)?(${categoryNames})(?:】|\\])?[：:\\s]+([\\s\\S]+)$`);
+
+        lines.forEach(line => {
+            const match = line.match(itemRegex);
+            if (match) {
+                extractedItems.push({
+                    category: match[1].trim(),
+                    text: match[2].trim()
+                });
+            } else if (extractedItems.length > 0) {
+                extractedItems[extractedItems.length - 1].text += '\n' + line;
+            }
+        });
+
+        if (extractedItems.length >= 2) {
+            return extractedItems.map((item, idx) => ({
+                title: `【這兩週的學習主題 ${idx + 1}：${item.category}】`,
+                content: item.text
+            }));
+        }
+
+        const cleanSingleContent = content.replace(new RegExp(`^(?:[12][\\.、\\s]*)?(?:${categoryNames})[：:\\s]*`), '').trim();
+        return [{ title, content: cleanSingleContent || content }];
+    }
+
+    function renderStructuredResult(rawText) {
+        const cleanedText = rawText
+            .replace(/^---\s*$/gm, '')
+            .replace(/\*\*/g, '')
+            .replace(/^#{1,4}\s*/gm, '')
+            .trim();
+
+        const mainSectionRegex = /(?=【(?:[1234][\.\、\s]*)?(?:這兩週的學習主題[^】]*|到哪些地點|遇到什麼樣的人事物|學習、觀察到了什麼)】)/g;
+
+        let rawSections = [];
+        if (mainSectionRegex.test(cleanedText)) {
+            rawSections = cleanedText.split(mainSectionRegex).filter(s => s.trim() !== '');
+        } else {
+            rawSections = cleanedText.split(/(?=【.*?】)/).filter(s => s.trim() !== '');
+        }
+
+        const finalBlocks = [];
+        rawSections.forEach(section => {
+            const match = section.match(/^(【.*?】)\s*([\s\S]*)$/);
+            if (match) {
+                const rawTitle = match[1].trim();
+                const rawContent = match[2].trim();
+                if (rawTitle.includes('這兩週的學習主題')) {
+                    const splitItems = splitLearningThemesIfNeeded(rawTitle, rawContent);
+                    finalBlocks.push(...splitItems);
+                } else {
+                    finalBlocks.push({ title: rawTitle, content: rawContent });
+                }
+            } else {
+                finalBlocks.push({ title: null, content: section.trim() });
+            }
+        });
+
+        resultBox.innerHTML = '';
+
+        finalBlocks.forEach(block => {
+            const wrapper = document.createElement('div');
+
+            if (block.title) {
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'section-header';
+
+                const titleSpan = document.createElement('span');
+                titleSpan.className = 'highlight-title';
+                titleSpan.textContent = block.title;
+
+                const sectionCopyBtn = document.createElement('button');
+                sectionCopyBtn.type = 'button';
+                sectionCopyBtn.className = 'section-copy-btn';
+                sectionCopyBtn.textContent = '複製這段';
+
+                sectionCopyBtn.addEventListener('click', function () {
+                    copyToClipboardSafe(block.content).then(() => {
+                        const originalText = this.textContent;
+                        this.textContent = '✅ 已複製';
+                        this.style.background = '#8ba89f';
+                        this.style.color = 'white';
+                        setTimeout(() => {
+                            this.textContent = originalText;
+                            this.style.background = '#cbd5e1';
+                            this.style.color = '#334155';
+                        }, 2000);
+                    }).catch(() => {
+                        showNotice('複製失敗，請手動反白複製。', 'error');
+                    });
+                });
+
+                headerDiv.appendChild(titleSpan);
+                headerDiv.appendChild(sectionCopyBtn);
+                wrapper.appendChild(headerDiv);
+            }
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'section-content';
+            contentDiv.textContent = block.content;
+            wrapper.appendChild(contentDiv);
+
+            resultBox.appendChild(wrapper);
+        });
+
+        copyBtn.style.display = 'inline-block';
+    }
+
     submitBtn.addEventListener('click', async () => {
-        const text = document.getElementById('textInput').value;
-        const styleAdjustment = document.getElementById('styleInput').value;
+        const text = document.getElementById('textInput').value.trim();
+        const styleAdjustment = document.getElementById('styleInput').value.trim();
 
         if (!text && selectedFiles.length === 0) {
-            alert('請至少輸入文字或上傳一張照片！');
+            showNotice('請至少輸入文字或上傳一張照片！', 'error');
             return;
         }
 
@@ -335,86 +874,142 @@
 
         try {
             const base64Images = await Promise.all(selectedFiles.map(file => compressImage(file)));
+            const generatedResult = await generateWithGemini(text, styleAdjustment, base64Images);
 
-            const response = await fetch('/api/generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text: text, styleAdjustment: styleAdjustment, images: base64Images })
-            });
-
-            if (!response.ok) {
-                const contentType = response.headers.get("content-type");
-                if (contentType && contentType.indexOf("application/json") !== -1) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || '伺服器發生錯誤');
-                } else {
-                    const errorText = await response.text();
-                    if (errorText.includes('FUNCTION_PAYLOAD_TOO_LARGE')) {
-                        throw new Error('照片總檔案依然太大，請減少上傳的圖片數量。');
-                    }
-                    throw new Error('伺服器無效回應，請稍後再試。');
-                }
-            }
-
-            const data = await response.json();
-
-            if (data.result) {
-                fullRawText = data.result;
-                
-                const sections = fullRawText.split(/(?=【.*?】)/).filter(s => s.trim() !== '');
-                let htmlContent = '';
-                
-                sections.forEach(section => {
-                    const match = section.match(/^(【.*?】)\s*([\s\S]*)$/);
-                    if (match) {
-                        const title = match[1];
-                        const content = match[2].trim();
-                        htmlContent += `
-                            <div>
-                                <div class="section-header">
-                                    <span class="highlight-title">${title}</span>
-                                    <button class="section-copy-btn" data-content="${encodeURIComponent(content)}">複製這段</button>
-                                </div>
-                                <div class="section-content">${content.replace(/\n/g, '<br>')}</div>
-                            </div>
-                        `;
-                    } else {
-                        htmlContent += `<div class="section-content">${section.replace(/\n/g, '<br>')}</div>`;
-                    }
-                });
-
-                resultBox.innerHTML = htmlContent;
-                copyBtn.style.display = 'inline-block';
-                
-                document.querySelectorAll('.section-copy-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const contentToCopy = decodeURIComponent(this.getAttribute('data-content'));
-                        navigator.clipboard.writeText(contentToCopy).then(() => {
-                            const originalText = this.innerText;
-                            this.innerText = '✅ 已複製';
-                            this.style.background = '#8ba89f';
-                            this.style.color = 'white';
-                            setTimeout(() => {
-                                this.innerText = originalText;
-                                this.style.background = '#cbd5e1';
-                                this.style.color = '#334155';
-                            }, 2000);
-                        }).catch(err => alert('複製失敗'));
-                    });
-                });
+            if (generatedResult) {
+                fullRawText = generatedResult.replace(/\*\*/g, '');
+                renderStructuredResult(generatedResult);
             } else {
-                resultBox.innerText = `發生錯誤: 未知錯誤`;
+                resultBox.innerText = `發生錯誤: 未收到有效回應`;
             }
         } catch (error) {
-            resultBox.innerText = `連線失敗: ${error.message}`;
+            const savedCustomKey = (customApiKeyInput.value || '').trim();
+            if (!savedCustomKey) {
+                apiModal.classList.add('active');
+                showNotice('💡 在外部網站使用，請先填入你自己的免費 Gemini API Key！', 'info');
+            }
+            resultBox.innerText = `連線失敗: ${error.message}\n\n💡 提示：若在外部網站開啟，請點擊右上角「⚙️」填入自己的 Gemini API Key；若你是專案擁有者，可點擊右上角「🔒 Pro 提示詞打包」驗證密碼後複製提示詞貼回左側對話框。`;
         } finally {
             submitBtn.disabled = false;
             submitBtn.innerText = '產出結果';
         }
     });
 
+    // 若已解鎖則使用解密後的擁有者專屬提示詞；未解鎖則使用公開通用版提示詞
+    function getActiveSystemPrompt() {
+        if (isPasswordUnlocked && systemPromptEditor.value.trim()) {
+            return systemPromptEditor.value.trim();
+        }
+        return buildSystemPrompt(PUBLIC_CONTEXT_BLOCK, "").trim();
+    }
+
+    async function generateWithGemini(text, styleAdjustment, base64Images) {
+        const activeSystemPrompt = getActiveSystemPrompt();
+
+        let extraStylePrompt = "";
+        if (styleAdjustment && styleAdjustment.trim() !== "") {
+            extraStylePrompt = `\n\n【🚀 本次特別微調要求】\n請在維持上述原則的前提下，本次的內容生成請特別遵循以下使用者要求：\n「${styleAdjustment}」\n`;
+        }
+
+        const combinedPromptText = activeSystemPrompt + extraStylePrompt + "\n\n以下是我的原始口語與照片紀錄，請幫我提煉並轉化：\n" + (text || "無提供文字");
+
+        const parts = [{ text: combinedPromptText }];
+        base64Images.forEach(dataUrl => {
+            const cleanBase64 = dataUrl.replace(/^data:image\/\w+;base64,/, "");
+            if (cleanBase64) {
+                parts.push({
+                    inlineData: {
+                        mimeType: 'image/jpeg',
+                        data: cleanBase64
+                    }
+                });
+            }
+        });
+
+        const payload = {
+            contents: [
+                {
+                    role: 'user',
+                    parts: parts
+                }
+            ]
+        };
+
+        const savedCustomKey = (customApiKeyInput.value || '').trim();
+        const effectiveKey = savedCustomKey || apiKey;
+
+        let candidateModels = [
+            'gemini-2.5-flash-preview-09-2025',
+            'gemini-3.8-flash',
+            'gemini-3.6-flash',
+            'gemini-3.5-flash',
+            'gemini-2.5-flash'
+        ];
+
+        if (savedCustomKey && customModelSelect.value !== 'auto') {
+            candidateModels = [
+                customModelSelect.value,
+                ...candidateModels.filter(m => m !== customModelSelect.value)
+            ];
+        }
+
+        let lastError = null;
+        for (const modelName of candidateModels) {
+            try {
+                const output = await fetchModelWithRetry(modelName, effectiveKey, payload);
+                if (output) return output;
+            } catch (err) {
+                lastError = err;
+                console.warn(`模型 ${modelName} 嘗試失敗，切換下一備援模型:`, err.message);
+            }
+        }
+        throw lastError || new Error('無法連線至 Gemini 服務，請確認 API Key 或網路狀態。');
+    }
+
+    async function fetchModelWithRetry(modelName, key, payload) {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${encodeURIComponent(key)}`;
+        const delays = [1000, 2000, 4000];
+
+        for (let attempt = 0; attempt <= delays.length; attempt++) {
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) {
+                    const errData = await res.json().catch(() => ({}));
+                    const status = res.status;
+                    const errMsg = (errData.error && errData.error.message) || `HTTP ${status}`;
+
+                    if ((status === 429 || status >= 500) && attempt < delays.length) {
+                        await new Promise(r => setTimeout(r, delays[attempt]));
+                        continue;
+                    }
+                    throw new Error(errMsg);
+                }
+
+                const data = await res.json();
+                const text = data?.candidates?.[0]?.content?.parts
+                    ?.map(p => p.text || '')
+                    .join('')
+                    .trim();
+
+                if (!text) throw new Error('模型未回傳文字結果');
+                return text;
+            } catch (err) {
+                if (attempt === delays.length) throw err;
+                if (err.message.includes('HTTP 40') || err.message.includes('API key not valid') || err.message.includes('PERMISSION_DENIED') || err.message.includes('not found')) {
+                    throw err;
+                }
+                await new Promise(r => setTimeout(r, delays[attempt]));
+            }
+        }
+    }
+
     copyBtn.addEventListener('click', () => {
-        navigator.clipboard.writeText(fullRawText).then(() => {
+        copyToClipboardSafe(fullRawText).then(() => {
             const originalText = copyBtn.innerText;
             copyBtn.innerText = '✅ 全部已複製！';
             copyBtn.style.background = '#7e99b0';
@@ -423,9 +1018,134 @@
                 copyBtn.innerText = originalText;
                 copyBtn.style.background = '#8ba89f';
             }, 2000);
-        }).catch(err => {
-            alert('複製失敗，請手動反白複製。');
+        }).catch(() => {
+            showNotice('複製失敗，請手動反白複製。', 'error');
         });
+    });
+
+    function buildFullPromptForChat() {
+        const activeSystemPrompt = getActiveSystemPrompt();
+        const text = document.getElementById('textInput').value.trim();
+        const styleAdjustment = document.getElementById('styleInput').value.trim();
+
+        let extraStylePrompt = "";
+        if (styleAdjustment && styleAdjustment.trim() !== "") {
+            extraStylePrompt = `\n\n【🚀 本次特別微調要求】\n請在維持上述原則的前提下，本次的內容生成請特別遵循以下使用者要求：\n「${styleAdjustment}」\n`;
+        }
+
+        return activeSystemPrompt + extraStylePrompt + "\n\n以下是我的原始口語與照片紀錄，請幫我提煉並轉化：\n" + (text || "無提供文字");
+    }
+
+    openPromptLockBtn.addEventListener('click', () => {
+        passwordModal.classList.add('active');
+        passwordErrorMsg.classList.add('hidden-block');
+        if (!isPasswordUnlocked) {
+            passwordInput.value = '';
+            setTimeout(() => passwordInput.focus(), 50);
+        }
+    });
+
+    closePasswordModalBtn.addEventListener('click', () => {
+        passwordModal.classList.remove('active');
+    });
+
+    function verifyPasswordAndCopy() {
+        const inputVal = passwordInput.value.trim();
+        if (verifyPasswordHash(inputVal)) {
+            isPasswordUnlocked = true;
+            systemPromptEditor.value = decryptOwnerPromptWithKey(inputVal);
+            passwordInput.value = '';
+            passwordErrorMsg.classList.add('hidden-block');
+            passwordLockView.classList.add('hidden-block');
+            passwordUnlockedView.classList.remove('hidden-block');
+            openPromptLockBtn.classList.add('unlocked-badge');
+            lockBtnText.innerText = '專屬模式已解鎖';
+            triggerFullPromptCopy();
+        } else {
+            passwordErrorMsg.classList.remove('hidden-block');
+        }
+    }
+
+    verifyPasswordBtn.addEventListener('click', verifyPasswordAndCopy);
+    passwordInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') verifyPasswordAndCopy();
+    });
+
+    copyFullPromptNowBtn.addEventListener('click', triggerFullPromptCopy);
+
+    relockBtn.addEventListener('click', () => {
+        isPasswordUnlocked = false;
+        systemPromptEditor.value = '';
+        passwordInput.value = '';
+        passwordUnlockedView.classList.add('hidden-block');
+        passwordLockView.classList.remove('hidden-block');
+        openPromptLockBtn.classList.remove('unlocked-badge');
+        lockBtnText.innerText = 'Pro 提示詞打包';
+        passwordModal.classList.remove('active');
+        showNotice('🔒 已重新鎖定，並恢復為公開通用模式。', 'info');
+    });
+
+    function triggerFullPromptCopy() {
+        const assembled = buildFullPromptForChat();
+        copyToClipboardSafe(assembled).then(() => {
+            showNotice('✅ 已解密並複製完整專屬提示詞（含目前草稿）！可直接貼到左方 Gemini Pro / Argon 對話視窗。', 'success');
+        }).catch(() => {
+            showNotice('複製失敗，請手動複製。', 'error');
+        });
+    }
+
+    function loadSavedApiSettings() {
+        try {
+            const savedKey = localStorage.getItem('translator_00_api_key') || '';
+            const savedModel = localStorage.getItem('translator_00_model') || 'auto';
+            customApiKeyInput.value = savedKey;
+            customModelSelect.value = savedModel;
+            updateApiBadge(savedKey);
+        } catch (e) {}
+    }
+
+    function updateApiBadge(key) {
+        apiStatusBadge.innerText = (key && key.trim().length > 5) ? '自訂 API Key 模式' : 'Canvas 內建模式';
+    }
+
+    toggleApiModalBtn.addEventListener('click', () => {
+        apiModal.classList.add('active');
+    });
+
+    closeApiModalBtn.addEventListener('click', () => {
+        apiModal.classList.remove('active');
+    });
+
+    saveApiKeyBtn.addEventListener('click', () => {
+        const key = customApiKeyInput.value.trim();
+        const model = customModelSelect.value;
+        try {
+            localStorage.setItem('translator_00_api_key', key);
+            localStorage.setItem('translator_00_model', model);
+        } catch (e) {}
+        updateApiBadge(key);
+        apiModal.classList.remove('active');
+        showNotice(key ? '✅ 已儲存自訂 API Key 設定！' : '✅ 已切換為 Canvas 內建免金鑰模式！', 'success');
+    });
+
+    clearApiKeyBtn.addEventListener('click', () => {
+        customApiKeyInput.value = '';
+        customModelSelect.value = 'auto';
+        try {
+            localStorage.removeItem('translator_00_api_key');
+            localStorage.setItem('translator_00_model', 'auto');
+        } catch (e) {}
+        updateApiBadge('');
+        showNotice('已恢復為預設 Canvas 內建免金鑰模式。', 'success');
+    });
+
+    window.addEventListener('click', (e) => {
+        if (e.target === passwordModal) {
+            passwordModal.classList.remove('active');
+        }
+        if (e.target === apiModal) {
+            apiModal.classList.remove('active');
+        }
     });
 </script>
 
